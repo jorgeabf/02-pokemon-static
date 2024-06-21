@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from 'astro'
+import MainLayout from '../../layouts/MainLayout.astro'
+import PokemonCard from '../../components/PokemonCard.astro'
+
+export const getStaticPaths = (() => {
+  return [
+    {
+      params: {
+        name: 'bulbasaur'
+      },
+      props: {
+        url: 'https://pokeapi.co/api/v2/pokemon/1/',
+        name: 'bulbasaur'
+      }
+    },
+    {
+      params: {
+        name: 'charmander'
+      },
+      props: {
+        url: 'https://pokeapi.co/api/v2/pokemon/4/',
+        name: 'charmander'
+      }
+    }
+  ]
+}) satisfies GetStaticPaths
+
+const { name } = Astro.params
+const { url } = Astro.props
+
+const id = url.split('/').at(-2)
+---
+
+<MainLayout title={name}>
+  <PokemonCard
+    name={name}
+    url={url}
+  />
+</MainLayout>
