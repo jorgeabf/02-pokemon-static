@@ -3,33 +3,28 @@ import type { GetStaticPaths } from 'astro'
 import MainLayout from '../../layouts/MainLayout.astro'
 import PokemonCard from '../../components/PokemonCard.astro'
 
-export const getStaticPaths = (() => {
-  return [
-    {
-      params: {
-        name: 'bulbasaur'
-      },
-      props: {
-        url: 'https://pokeapi.co/api/v2/pokemon/1/',
-        name: 'bulbasaur'
-      }
+export const getStaticPaths = (async () => {
+  const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
+
+  const { results } = (await resp.json()) as PokemonListResponse
+
+  return results.map(({ name, url }) => ({
+    params: {
+      name: name
     },
-    {
-      params: {
-        name: 'charmander'
-      },
-      props: {
-        url: 'https://pokeapi.co/api/v2/pokemon/4/',
-        name: 'charmander'
-      }
+    props: {
+      url: url,
+      name: name
     }
-  ]
+  }))
 }) satisfies GetStaticPaths
 
 const { name } = Astro.params
 const { url } = Astro.props
 
 const id = url.split('/').at(-2)
+
+const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
 ---
 
 <MainLayout title={name}>
@@ -37,4 +32,14 @@ const id = url.split('/').at(-2)
     name={name}
     url={url}
   />
+  <audio
+    controls
+    class='mt-4 mx-auto'
+  >
+    <source
+      src={audioSrc}
+      type='audio/ogg'
+    />
+    Your browser does not support the audio element.
+  </audio>
 </MainLayout>
