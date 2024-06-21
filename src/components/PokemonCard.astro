@@ -1,0 +1,19 @@
+---
+import { Image } from 'astro:assets'
+
+interface Props {
+  url: string
+  name: string
+}
+
+const { url, name } = Astro.props
+const id = url.split('/').at(-2)
+---
+
+<article class='bg-slate-900 border border-slate-600 p-4 rounded-xl'>
+  <img
+    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`}
+    alt={`Imagen de ${name}`}
+  />
+  <h3 class='text-center text-lg capitalize mt-4'>{name}</h3>
+</article>
