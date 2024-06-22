@@ -28,9 +28,15 @@ const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pok
 ---
 
 <MainLayout title={name}>
+  <a
+    class='m-auto text-2xl py-4 block text-center text-blue-400'
+    href='/'
+    >Volver a la página de inicio</a
+  >
   <PokemonCard
     name={name}
     url={url}
+    isBig
   />
   <audio
     controls
