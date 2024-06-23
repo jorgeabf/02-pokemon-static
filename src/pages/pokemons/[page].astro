@@ -20,12 +20,12 @@ const { page } = Astro.props
       <nav class='flex gap-4'>
         <a
           href={page.url.prev}
-          class:list={['nav-btn', !page.url.prev && 'disabled']}
+          class:list={['nav-btn', { disabled: !page.url.prev }]}
           >Anteriores</a
         >
         <a
           href={page.url.next}
-          class:list={['nav-btn', !page.url.next && 'disabled']}
+          class:list={['nav-btn', { disabled: !page.url.next }]}
           >Siguientes</a
         >
       </nav>
