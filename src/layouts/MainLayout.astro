@@ -1,10 +1,20 @@
 ---
 import { ViewTransitions } from 'astro:transitions'
+import { SITE_INFO } from 'src/consts/site-info'
 
 interface Props {
-  title: string
+  title?: string
+  description?: string
+  image?: string
 }
-const { title } = Astro.props
+
+const { SITE_TITLE, SITE_DESCRIPTION } = SITE_INFO
+
+const {
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION,
+  image
+} = Astro.props
 ---
 
 <html lang='es'>
@@ -20,8 +30,33 @@ const { title } = Astro.props
       content='width=device-width'
     />
     <title>{title}</title>
+    <meta
+      name='description'
+      content={description}
+    />
+    <meta
+      property='og:type'
+      content='website'
+    />
+    <meta
+      property='og:url'
+      content={import.meta.url}
+    />
+    <meta
+      property='og:title'
+      content={title}
+    />
+    <meta
+      property='og:description'
+      content={description}
+    />
+    <meta
+      property='og:image'
+      content={image}
+    />
     <ViewTransitions />
   </head>
+
   <body class='bg-slate-800 text-slate-100'>
     <main class='max-w-6xl mx-auto px-6 py-12'>
       <h1

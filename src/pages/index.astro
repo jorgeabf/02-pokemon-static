@@ -1,6 +1,6 @@
 ---
-import PokemonCard from '../components/PokemonCard.astro'
-import MainLayout from '../layouts/MainLayout.astro'
+import PokemonCard from '@components/PokemonCard.astro'
+import MainLayout from '@layouts/MainLayout.astro'
 
 const API_URL = 'https://pokeapi.co/api/v2/pokemon'
 
@@ -12,9 +12,11 @@ const { results } = data
 
 <MainLayout title='Pokemon Static App'>
   <section>
-    <h2 class='text-2xl font-bold mb-8 text-center'>
-      Elige tu Pokemon favorito!
-    </h2>
+    <a
+      class='m-auto text-2xl py-4 block text-center text-blue-400'
+      href='/pokemons/1'
+      >Ver todos los pokemons</a
+    >
     <ul
       aria-label='Pokemon listado'
       class='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'

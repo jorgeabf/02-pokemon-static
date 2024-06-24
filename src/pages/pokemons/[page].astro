@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro'
-import PokemonCard from '../../components/PokemonCard.astro'
-import MainLayout from '../../layouts/MainLayout.astro'
+import PokemonCard from '@components/PokemonCard.astro'
+import MainLayout from '@layouts/MainLayout.astro'
 
 export const getStaticPaths = (async ({ paginate }) => {
   const API_URL = 'https://pokeapi.co/api/v2/pokemon?limit=151'

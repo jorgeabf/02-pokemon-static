@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro'
-import MainLayout from '../../layouts/MainLayout.astro'
-import PokemonCard from '../../components/PokemonCard.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import PokemonCard from '@components/PokemonCard.astro'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -25,9 +25,14 @@ const { url } = Astro.props
 const id = url.split('/').at(-2)
 
 const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
+const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
 ---
 
-<MainLayout title={name}>
+<MainLayout
+  title={`Pokemon - #${id} ${name}`}
+  description={`Información sobre el Pokemon ${name}`}
+  image={imageSrc}
+>
   <a
     class='m-auto text-2xl py-4 block text-center text-blue-400'
     href='/'
