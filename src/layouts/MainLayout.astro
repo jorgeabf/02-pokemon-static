@@ -8,12 +8,12 @@ interface Props {
   image?: string
 }
 
-const { SITE_TITLE, SITE_DESCRIPTION } = SITE_INFO
+const { SITE_TITLE, SITE_DESCRIPTION, SITE_IMAGE } = SITE_INFO
 
 const {
   title = SITE_TITLE,
   description = SITE_DESCRIPTION,
-  image
+  image = SITE_IMAGE
 } = Astro.props
 ---
 

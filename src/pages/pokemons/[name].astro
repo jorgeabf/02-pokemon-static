@@ -29,8 +29,8 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
 ---
 
 <MainLayout
-  title={`Pokemon - #${id} ${name}`}
-  description={`Información sobre el Pokemon ${name}`}
+  title={`#${id} ${name.toLocaleUpperCase()}`}
+  description={`Información, Imágen y Sonido del Pokémon ${name.toLocaleUpperCase()}`}
   image={imageSrc}
 >
   <a
