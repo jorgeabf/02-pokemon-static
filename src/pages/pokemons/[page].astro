@@ -15,19 +15,49 @@ const { page } = Astro.props
 const { currentPage, lastPage, url, data } = page
 ---
 
-<MainLayout title={`Pokemons. Página ${currentPage} de ${lastPage}`}>
-  <section class="relative">
-    <nav class='flex justify-between space-x-4 mb-8 gap-4 absolute -top-[82px] w-full'>
+<MainLayout title={`Pokémons ${currentPage} de ${lastPage}`}>
+  <section class='relative'>
+    <nav
+      class='flex justify-between space-x-4 mb-8 gap-4 absolute -top-[82px] w-full'
+    >
       <a
         href={url.prev}
         class:list={['nav-btn', { disabled: !url.prev }]}
-        >Anterior</a
       >
+        <svg
+          width='32'
+          height='32'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+        >
+          <path
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            stroke-width='2'
+            d='M15 19l-7-7 7-7'
+          ></path>
+        </svg>
+      </a>
       <a
         href={url.next}
         class:list={['nav-btn', { disabled: !url.next }]}
-        >Siguiente</a
       >
+        <svg
+          width='32'
+          height='32'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+        >
+          <path
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            stroke-width='2'
+            d='M9 5l7 7-7 7'
+          ></path>
+        </svg>
+      </a>
     </nav>
     <ul
       aria-label='Pokemon listado'
@@ -47,10 +77,10 @@ const { currentPage, lastPage, url, data } = page
 
 <style>
   .nav-btn {
-    @apply px-4 py-2 bg-orange-700 rounded-md;
+    @apply px-1 py-1 bg-orange-700 rounded-xl;
   }
 
   .disabled {
-    @apply cursor-not-allowed bg-gray-500 pointer-events-none;
+    @apply cursor-not-allowed bg-slate-500 pointer-events-none;
   }
 </style>
