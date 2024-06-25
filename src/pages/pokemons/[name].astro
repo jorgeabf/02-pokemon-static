@@ -3,6 +3,7 @@ import type { GetStaticPaths } from 'astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import PokemonCard from '@components/PokemonCard.astro'
 import Button from '@components/shared/Button.astro'
+import { Icon } from 'astro-icon/components'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -34,10 +35,28 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   description={`Información, Imágen y Sonido del Pokémon ${name.toLocaleUpperCase()}`}
   image={imageSrc}
 >
-<aside class="absolute -mt-20">
-  <Button onClick='history.back()'>Volver</Button>
-</aside>
-  
+  <aside class='-mt-20 mb-10 flex justify-between gap-2 w-full'>
+    <Button onClick='history.back()'>Volver</Button>
+    <button
+      id='btn-favorite'
+      class='hover:animate-pulse'
+      data-name={name}
+      data-id={id}
+    >
+      <Icon
+        name='heart-outline'
+        data-outline
+        size={48}
+      />
+      <Icon
+        name='heart-full'
+        data-full
+        size={48}
+        color='red'
+        class='hidden'
+      />
+    </button>
+  </aside>
   <PokemonCard
     name={name}
     url={url}
@@ -54,3 +73,33 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
     Your browser does not support the audio element.
   </audio>
 </MainLayout>
+
+<script>
+  interface FavoritePokemon {
+    id: number
+    name: string
+  }
+
+  const handlePageLoad = () => {
+    const btnFavorite = document.getElementById(
+      'btn-favorite'
+    ) as HTMLButtonElement
+
+    if (!btnFavorite) return
+
+    const name = btnFavorite.dataset.name
+    const id = btnFavorite.dataset.id
+
+    const heartOutline = btnFavorite.querySelector(
+      '[data-outline]'
+    ) as HTMLElement
+    const heartFull = btnFavorite.querySelector('[data-full]') as HTMLElement
+
+    btnFavorite.addEventListener('click', () => {
+      heartOutline.classList.toggle('hidden')
+      heartFull.classList.toggle('hidden')
+    })
+  }
+
+  document.addEventListener('astro:page-load', handlePageLoad)
+</script>
