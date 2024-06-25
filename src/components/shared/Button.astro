@@ -1,0 +1,20 @@
+---
+interface Props {
+  onClick: string
+}
+
+const { onClick } = Astro.props
+---
+
+<button
+  class='nav-btn'
+  onclick={onClick}
+>
+  <slot />
+</button>
+
+<style>
+  .nav-btn {
+    @apply px-4 py-2 bg-orange-700 rounded-md;
+  }
+</style>

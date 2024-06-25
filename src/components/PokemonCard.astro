@@ -22,7 +22,7 @@ const id = url.split('/').at(-2)
       alt={`Imagen de ${name}`}
       class:list={['mx-auto', { 'size-32': !isBig, 'size-96': isBig }]}
     />
-    <h3 class:list={['text-center capitalize ', isBig && 'text-4xl']}>
+    <h3 class:list={['text-center capitalize ', isBig && 'hidden']}>
       #{id}
       {name}
     </h3>

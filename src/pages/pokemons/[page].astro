@@ -16,17 +16,17 @@ const { currentPage, lastPage, url, data } = page
 ---
 
 <MainLayout title={`Pokemons. Página ${currentPage} de ${lastPage}`}>
-  <section>
-    <nav class='flex justify-between space-x-4 mb-8 gap-4'>
+  <section class="relative">
+    <nav class='flex justify-between space-x-4 mb-8 gap-4 absolute -top-[82px] w-full'>
       <a
         href={url.prev}
         class:list={['nav-btn', { disabled: !url.prev }]}
-        >Anteriores</a
+        >Anterior</a
       >
       <a
         href={url.next}
         class:list={['nav-btn', { disabled: !url.next }]}
-        >Siguientes</a
+        >Siguiente</a
       >
     </nav>
     <ul

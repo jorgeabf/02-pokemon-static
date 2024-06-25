@@ -1,0 +1,38 @@
+---
+const navItems = [
+  { href: '/', text: 'Inicio' },
+  { href: '/pokemons/1', text: 'Pokemons' },
+  { href: '/favoritos', text: 'Favoritos' }
+]
+
+const currentPath = Astro.url.pathname
+
+console.log(currentPath)
+---
+
+<nav class='bg-white shadow dark:bg-slate-900'>
+  <div
+    class='container flex items-center justify-center p-6 mx-auto text-gray-600 capitalize dark:text-gray-300'
+  >
+    {
+      navItems.map(({ href, text }) => (
+        <div>
+          <a
+            href={href}
+            class=' text-gray-800 dark:text-gray-200 mx-4'
+          >
+            {text}
+          </a>
+          {currentPath === href ? (
+            <div
+              class='border-b-2 border-blue-500 mx-3'
+              transition:name='nav-line'
+            />
+          ) : (
+            <div class='border-b-2 border-transparent mx-2' />
+          )}
+        </div>
+      ))
+    }
+  </div>
+</nav>

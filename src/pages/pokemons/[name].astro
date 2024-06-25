@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from 'astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import PokemonCard from '@components/PokemonCard.astro'
+import Button from '@components/shared/Button.astro'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -33,11 +34,10 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   description={`Información, Imágen y Sonido del Pokémon ${name.toLocaleUpperCase()}`}
   image={imageSrc}
 >
-  <a
-    class='m-auto text-2xl py-4 block text-center text-blue-400'
-    href='/pokemons/5'
-    >Volver</a
-  >
+<aside class="absolute -mt-20">
+  <Button onClick='history.back()'>Volver</Button>
+</aside>
+  
   <PokemonCard
     name={name}
     url={url}
