@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from 'astro'
 import PokemonCard from '@components/PokemonCard.astro'
 import MainLayout from '@layouts/MainLayout.astro'
+import { Icon } from 'astro-icon/components'
 
 export const getStaticPaths = (async ({ paginate }) => {
   const API_URL = 'https://pokeapi.co/api/v2/pokemon?limit=151'
@@ -24,39 +25,21 @@ const { currentPage, lastPage, url, data } = page
         href={url.prev}
         class:list={['nav-btn', { disabled: !url.prev }]}
       >
-        <svg
-          width='32'
-          height='32'
-          fill='none'
-          viewBox='0 0 24 24'
-          stroke='currentColor'
-        >
-          <path
-            stroke-linecap='round'
-            stroke-linejoin='round'
-            stroke-width='2'
-            d='M15 19l-7-7 7-7'
-          ></path>
-        </svg>
+        <Icon
+          name='arrow-left'
+          size={32}
+          title='Página anterior'
+        />
       </a>
       <a
         href={url.next}
         class:list={['nav-btn', { disabled: !url.next }]}
       >
-        <svg
-          width='32'
-          height='32'
-          fill='none'
-          viewBox='0 0 24 24'
-          stroke='currentColor'
-        >
-          <path
-            stroke-linecap='round'
-            stroke-linejoin='round'
-            stroke-width='2'
-            d='M9 5l7 7-7 7'
-          ></path>
-        </svg>
+        <Icon
+          name='arrow-right'
+          size={32}
+          title='Siguiente página'
+        />
       </a>
     </nav>
     <ul
