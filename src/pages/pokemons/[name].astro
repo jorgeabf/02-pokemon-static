@@ -3,6 +3,8 @@ import type { GetStaticPaths } from 'astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import PokemonCard from '@components/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -25,6 +27,8 @@ const { url } = Astro.props
 
 const id = url.split('/').at(-2)
 
+const PAGE_TITLE = `#${id} ${name.toLocaleUpperCase()}`
+
 const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
 const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
 ---
@@ -34,12 +38,19 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   description={`Información, Imágen y Sonido del Pokémon ${name.toLocaleUpperCase()}`}
   image={imageSrc}
 >
-  <aside class='-mt-20 mb-10 flex justify-between gap-2 w-full'>
+  <PageHeader>
     <button
       onclick='history.back()'
       class='btn'
-      >Volver</button
     >
+      <Icon
+        name='arrow-left'
+        size={40}
+      />
+    </button>
+    <PageTitle>
+      {PAGE_TITLE}
+    </PageTitle>
     <button
       id='btn-favorite'
       class='hover:animate-pulse'
@@ -49,17 +60,18 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
       <Icon
         name='heart-outline'
         data-outline
-        size={48}
+        size={40}
       />
       <Icon
         name='heart-full'
         data-full
-        size={48}
+        size={40}
         color='red'
         class='hidden'
       />
     </button>
-  </aside>
+  </PageHeader>
+
   <PokemonCard
     name={name}
     url={url}
@@ -67,7 +79,7 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   />
   <audio
     controls
-    class='mt-4 mx-auto'
+    class='mt-6 mx-auto'
   >
     <source
       src={audioSrc}
