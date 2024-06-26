@@ -1,5 +1,15 @@
 ---
+import Counter from '@components/Counter'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
+
+const PAGE_TITLE = 'Pokemons Favoritos'
 ---
 
-<MainLayout title='Pokemons Favoritos' />
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+  <Counter client:load />
+</MainLayout>
