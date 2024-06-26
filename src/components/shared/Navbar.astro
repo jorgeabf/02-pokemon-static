@@ -1,11 +1,13 @@
 ---
 const navItems = [
   { href: '/', text: 'Inicio' },
-  { href: '/pokemons/1', text: 'Pokemons' },
-  { href: '/favoritos', text: 'Favoritos' }
+  { href: '/pokemons/1/', text: 'Pokemons' },
+  { href: '/favoritos/', text: 'Favoritos' }
 ]
 
 const currentPath = Astro.url.pathname
+
+console.log(currentPath)
 ---
 
 <nav class='bg-white shadow dark:bg-slate-800'>
@@ -24,10 +26,10 @@ const currentPath = Astro.url.pathname
           {currentPath === href ? (
             <div
               transition:name='nav-line'
-              class='border-b-2 border-blue-500 mx-4'
+              class='mt-1 border-b-2 border-indigo-500 mx-5'
             />
           ) : (
-            <div class='border-b-2 border-transparent' />
+            <div class='mt-1 border-b-2 border-transparent mx-5' />
           )}
         </div>
       ))
