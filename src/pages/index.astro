@@ -1,6 +1,11 @@
 ---
 import PokemonCard from '@components/PokemonCard.astro'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
+import { SITE_INFO } from 'src/consts/site-info.ts'
+
+const { SITE_TITLE } = SITE_INFO
 
 const API_URL = 'https://pokeapi.co/api/v2/pokemon'
 
@@ -11,6 +16,9 @@ const { results } = data
 ---
 
 <MainLayout>
+  <PageHeader>
+    <PageTitle>{SITE_TITLE}</PageTitle>
+  </PageHeader>
   <section>
     <ul
       aria-label='Pokemon listado'

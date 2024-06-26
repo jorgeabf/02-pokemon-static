@@ -1,6 +1,5 @@
 ---
 import Navbar from '@components/shared/Navbar.astro'
-import PageTitle from '@components/shared/PageTitle.astro'
 import { ViewTransitions } from 'astro:transitions'
 import { SITE_INFO } from 'src/consts/site-info'
 
@@ -65,13 +64,16 @@ const {
 
   <body class='bg-slate-800 text-slate-100'>
     <Navbar />
-    <main class='max-w-6xl mx-auto px-6 py-10 relative'>
-      <PageTitle>{title}</PageTitle>
+    <main class='max-w-6xl mx-auto px-6 pb-12 relative'>
       <slot />
     </main>
     <style is:global>
       .btn {
-        @apply bg-orange-700 hover:bg-orange-800 text-white font-bold px-4 rounded-xl py-2;
+        @apply bg-orange-700 hover:bg-orange-800 text-white font-bold rounded-xl size-10 grid place-content-center;
+      }
+
+      .btn-disabled {
+        @apply cursor-not-allowed bg-slate-500 pointer-events-none;
       }
     </style>
   </body>
