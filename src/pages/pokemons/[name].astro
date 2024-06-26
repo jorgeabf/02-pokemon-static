@@ -2,7 +2,6 @@
 import type { GetStaticPaths } from 'astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import PokemonCard from '@components/PokemonCard.astro'
-import Button from '@components/shared/Button.astro'
 import { Icon } from 'astro-icon/components'
 
 export const getStaticPaths = (async () => {
@@ -36,7 +35,11 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   image={imageSrc}
 >
   <aside class='-mt-20 mb-10 flex justify-between gap-2 w-full'>
-    <Button onClick='history.back()'>Volver</Button>
+    <button
+      onclick='history.back()'
+      class='btn'
+      >Volver</button
+    >
     <button
       id='btn-favorite'
       class='hover:animate-pulse'
@@ -81,23 +84,46 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   }
 
   const handlePageLoad = () => {
+    let favorites: FavoritePokemon[] = JSON.parse(
+      localStorage.getItem('favorites') ?? '[]'
+    )
+
     const btnFavorite = document.getElementById(
       'btn-favorite'
     ) as HTMLButtonElement
 
     if (!btnFavorite) return
 
-    const name = btnFavorite.dataset.name
-    const id = btnFavorite.dataset.id
+    const name = btnFavorite.dataset.name ?? ''
+    const id = btnFavorite.dataset.id ?? ''
+    const isFavorite = favorites.some((fav) => fav.name === name)
 
     const heartOutline = btnFavorite.querySelector(
       '[data-outline]'
     ) as HTMLElement
     const heartFull = btnFavorite.querySelector('[data-full]') as HTMLElement
 
+    if (isFavorite) {
+      heartOutline.classList.add('hidden')
+      heartFull.classList.remove('hidden')
+    }
+
+    const toggleFavorite = () => {
+      const isFavorite = favorites.some((fav) => fav.name === name)
+
+      if (isFavorite) {
+        favorites = favorites.filter((fav) => fav.name !== name)
+      } else {
+        favorites.push({ id: +id, name })
+      }
+
+      localStorage.setItem('favorites', JSON.stringify(favorites))
+    }
+
     btnFavorite.addEventListener('click', () => {
       heartOutline.classList.toggle('hidden')
       heartFull.classList.toggle('hidden')
+      toggleFavorite()
     })
   }
 

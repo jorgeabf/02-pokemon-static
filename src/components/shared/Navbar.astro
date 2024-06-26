@@ -17,17 +17,17 @@ const currentPath = Astro.url.pathname
         <div>
           <a
             href={href}
-            class=' text-gray-800 dark:text-gray-200 mx-6'
+            class='text-gray-800 dark:text-gray-200 mx-6'
           >
             {text}
           </a>
           {currentPath === href ? (
             <div
-              class='mt-1 border-b-2 border-blue-500 mx-4'
               transition:name='nav-line'
+              class='border-b-2 border-blue-500 mx-4'
             />
           ) : (
-            <div class='mt-1 border-b-2 border-transparent mx-4' />
+            <div class='border-b-2 border-transparent' />
           )}
         </div>
       ))
