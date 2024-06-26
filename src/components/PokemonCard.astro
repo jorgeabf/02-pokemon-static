@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets'
+
 interface Props {
   url: string
   name: string
@@ -7,6 +9,8 @@ interface Props {
 
 const { url, name, isBig } = Astro.props
 const id = url.split('/').at(-2)
+
+const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
 ---
 
 <a href={`/pokemons/${name}`}>
@@ -17,12 +21,18 @@ const id = url.split('/').at(-2)
     ]}
   >
     <slot />
-    <img
+
+    <Image
       transition:name={`${name}-image`}
-      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`}
+      src={image}
       alt={`Imagen de ${name}`}
-      class:list={['mx-auto', { 'size-32': !isBig, 'size-96': isBig }]}
+      class='mx-auto'
+      width={isBig ? 360 : 180}
+      height={isBig ? 360 : 180}
+      format='avif'
+      loading='eager'
     />
+
     <h3 class:list={['text-center capitalize ', isBig && 'hidden']}>
       #{id}
       {name}
