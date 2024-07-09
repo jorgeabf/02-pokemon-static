@@ -11,13 +11,13 @@ const Counter = () => {
       <h2 class='text-2xl font-bold leading-none'>Contador</h2>
       <div class='flex justify-center gap-2'>
         <button
-          class='size-10 bg-red-700 rounded-xl font-bold'
+          class='size-16 bg-red-700 rounded-xl font-black'
           onClick={handleDecrement}
         >
           -
         </button>
         <button
-          class='size-10 bg-green-700 rounded-xl font-bold'
+          class='size-16 bg-green-700 rounded-xl font-black'
           onClick={handleIncrement}
         >
           +
