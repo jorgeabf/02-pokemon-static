@@ -1,14 +1,19 @@
-import { createSignal } from 'solid-js'
+import { createSignal, type Component, type JSX } from 'solid-js'
 
-const Counter = () => {
-  const [counter, setCounter] = createSignal(0)
+interface Props {
+  initialValue: number
+  children: JSX.Element
+}
+
+const Counter: Component<Props> = ({ initialValue, children }) => {
+  const [counter, setCounter] = createSignal(initialValue)
 
   const handleDecrement = () => setCounter(counter() - 1)
   const handleIncrement = () => setCounter(counter() + 1)
 
   return (
     <aside class='mx-auto w-fit text-center p-8 border border-slate-400 rounded-xl grid gap-4'>
-      <h2 class='text-2xl font-bold leading-none'>Contador</h2>
+      {children}
       <div class='flex justify-center gap-2'>
         <button
           class='size-16 bg-red-700 rounded-xl font-black'
