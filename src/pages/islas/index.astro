@@ -5,11 +5,19 @@ import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 
 const PAGE_TITLE = 'Islas de Astro'
+const counterValue = 69
 ---
 
 <MainLayout title={PAGE_TITLE}>
   <PageHeader>
     <PageTitle>{PAGE_TITLE}</PageTitle>
   </PageHeader>
-  <Counter client:load />
+  <Counter
+    client:load
+    initialValue={counterValue}
+    transition:persist='counter'
+    transition:persist-props
+  >
+    <PageTitle>Contador de Isla</PageTitle>
+  </Counter>
 </MainLayout>
