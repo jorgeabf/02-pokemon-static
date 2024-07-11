@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro'
 import MainLayout from '@layouts/MainLayout.astro'
-import PokemonCard from '@components/PokemonCard.astro'
+import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
@@ -90,10 +90,7 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
 </MainLayout>
 
 <script>
-  interface FavoritePokemon {
-    id: number
-    name: string
-  }
+  import type { FavoritePokemon } from 'interfaces/favorite-pokemon'
 
   const handlePageLoad = () => {
     let favorites: FavoritePokemon[] = JSON.parse(
