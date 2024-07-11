@@ -1,14 +1,15 @@
 ---
+import FavoritePokemons from '@components/pokemons/FavoritePokemons'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 
 const PAGE_TITLE = 'Pokemons Favoritos'
-const counterValue = 13
 ---
 
 <MainLayout title={PAGE_TITLE}>
   <PageHeader>
     <PageTitle>{PAGE_TITLE}</PageTitle>
   </PageHeader>
+  <FavoritePokemons client:only='solid-js' />
 </MainLayout>
