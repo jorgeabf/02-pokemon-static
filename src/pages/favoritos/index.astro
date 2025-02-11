@@ -7,6 +7,19 @@ import MainLayout from '@layouts/MainLayout.astro'
 const PAGE_TITLE = 'Pokemons Favoritos'
 ---
 
+<script is:inline>
+  netlifyIdentity.setLocale('es')
+</script>
+<script
+  is:inline
+  src='https://identity.netlify.com/v1/netlify-identity-widget.js'
+></script>
+<div
+  data-netlify-identity-button
+  class='bg-green-600 py-2 px-4 rounded-md w-fit m-auto'
+>
+</div>
+
 <MainLayout title={PAGE_TITLE}>
   <PageHeader>
     <PageTitle>{PAGE_TITLE}</PageTitle>
