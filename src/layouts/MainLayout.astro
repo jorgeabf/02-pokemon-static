@@ -60,9 +60,16 @@ const {
       content={image}
     />
     <ViewTransitions />
+    <script is:raw src="https://identity.netlify.com/v1/netlify-identity-widget.js">
+    </script>
   </head>
 
   <body class='bg-slate-800 text-slate-100'>
+    <script>
+      netlifyIdentity.setLocale('es');
+    </script>
+    <div data-netlify-identity-menu class="bg-slate-500" ></div>
+    <div data-netlify-identity-button class="bg-green-600 p-4 rounded-md w-fit m-auto">Iniciar sesión</div>
     <Navbar />
     <main class='max-w-6xl mx-auto px-6 pb-12 relative'>
       <slot />
