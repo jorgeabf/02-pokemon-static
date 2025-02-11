@@ -11,11 +11,11 @@ const currentPath = Astro.url.pathname
 
 <nav class='bg-white shadow dark:bg-slate-800'>
   <div
-    class='container flex items-center justify-center p-4 mx-auto text-gray-600 capitalize dark:text-gray-300'
+    class='container flex items-center justify-between p-4 mx-auto text-gray-600 capitalize dark:text-gray-300'
   >
     {
       navItems.map(({ href, text }) => (
-        <div>
+        <div class="flex justify-center items-center">
           <a
             href={href}
             class='text-gray-800 dark:text-gray-200 mx-6'
@@ -33,5 +33,17 @@ const currentPath = Astro.url.pathname
         </div>
       ))
     }
+    <script is:inline>
+      netlifyIdentity.setLocale('es')
+    </script>
+    <script
+      is:inline
+      src='https://identity.netlify.com/v1/netlify-identity-widget.js'
+    ></script>
+    <div
+      data-netlify-identity-button
+      class='bg-green-600 py-2 px-4 rounded-md w-fit m-auto'
+    >
+    </div>
   </div>
 </nav>
