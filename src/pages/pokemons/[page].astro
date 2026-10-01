@@ -23,12 +23,12 @@ const PAGE_TITLE = `Pokémons ${currentPage} de ${lastPage}`
   <PageHeader>
     <a
       href={url.prev}
+      aria-label='Página anterior'
       class:list={['btn', { 'btn-disabled': !url.prev }]}
     >
       <Icon
         name='arrow-left'
         size={40}
-        title='Página anterior'
       />
     </a>
     <PageTitle>
@@ -36,12 +36,12 @@ const PAGE_TITLE = `Pokémons ${currentPage} de ${lastPage}`
     </PageTitle>
     <a
       href={url.next}
+      aria-label='Página siguiente'
       class:list={['btn', { 'btn-disabled': !url.next }]}
     >
       <Icon
         name='arrow-right'
         size={40}
-        title='Siguiente página'
       />
     </a>
   </PageHeader>

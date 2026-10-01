@@ -5,27 +5,17 @@ import { getSpanishNames } from 'services/pokemon-species'
 interface Props {
   url: string
   name: string
-  isBig?: boolean
 }
 
-const { url, name, isBig } = Astro.props
+const { url, name } = Astro.props
 const id = url.split('/').at(-2)
 const spanishName = (await getSpanishNames())[name] ?? name
 
 const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
-
-// En la ficha (isBig) la tarjeta no enlaza a su propia página
-const Wrapper = isBig ? 'div' : 'a'
-const href = isBig ? undefined : `/pokemons/${name}`
 ---
 
-<Wrapper href={href}>
-  <article
-    class:list={[
-      'bg-slate-900 border border-slate-600 p-4 rounded-2xl relative',
-      isBig && 'p-8'
-    ]}
-  >
+<a href={`/pokemons/${name}`}>
+  <article class='bg-slate-900 border border-slate-600 p-4 rounded-2xl relative'>
     <slot />
 
     <Image
@@ -33,14 +23,14 @@ const href = isBig ? undefined : `/pokemons/${name}`
       src={image}
       alt={`Imagen de ${spanishName}`}
       class='mx-auto'
-      width={isBig ? 360 : 180}
-      height={isBig ? 360 : 180}
+      width={180}
+      height={180}
       format='avif'
       loading='eager'
     />
 
-    <h3 class:list={['text-center capitalize ', isBig && 'hidden']}>
+    <h3 class='text-center capitalize'>
       #{id} {spanishName}
     </h3>
   </article>
-</Wrapper>
+</a>

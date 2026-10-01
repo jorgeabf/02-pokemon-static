@@ -10,7 +10,7 @@ interface Props {
   image?: string
 }
 
-const { SITE_TITLE, SITE_DESCRIPTION, SITE_IMAGE } = SITE_INFO
+const { SITE_TITLE, SITE_DESCRIPTION, SITE_IMAGE, THEME_COLOR } = SITE_INFO
 
 const {
   title = SITE_TITLE,
@@ -27,13 +27,17 @@ const {
       type='image/svg+xml'
       href='/favicon.svg'
     />
+    <link
+      rel='manifest'
+      href='/manifest.webmanifest'
+    />
     <meta
       name='viewport'
       content='width=device-width, initial-scale=1'
     />
     <meta
       name='theme-color'
-      content='#1e293b'
+      content={THEME_COLOR}
     />
     <title>{title}</title>
     <meta
