@@ -1,11 +1,15 @@
 ---
 import type { GetStaticPaths } from 'astro'
+import { Image } from 'astro:assets'
 import MainLayout from '@layouts/MainLayout.astro'
-import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
-import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+import {
+  getDescriptions,
+  getSpanishNames,
+  toSpokenName
+} from 'services/pokemon-species'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -29,13 +33,19 @@ const { url } = Astro.props
 const id = url.split('/').at(-2)
 
 const spanishName = (await getSpanishNames())[name] ?? name
+const description = (await getDescriptions())[name]
 
 const PAGE_TITLE = `#${id} ${spanishName.toLocaleUpperCase()}`
 
 const spokenName = toSpokenName(spanishName)
 
+const SPRITES_URL =
+  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
 const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
-const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+const imageSrc = `${SPRITES_URL}/other/official-artwork/${id}.png`
+const shinyImageSrc = `${SPRITES_URL}/other/official-artwork/shiny/${id}.png`
+const animatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/animated/${id}.gif`
+const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/animated/shiny/${id}.gif`
 ---
 
 <MainLayout
@@ -46,6 +56,7 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   <PageHeader>
     <button
       onclick='history.back()'
+      aria-label='Volver'
       class='btn'
     >
       <Icon
@@ -58,6 +69,8 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
     </PageTitle>
     <button
       id='btn-favorite'
+      aria-label='Favorito'
+      aria-pressed='false'
       class='hover:animate-pulse'
       data-name={name}
       data-id={id}
@@ -77,37 +90,89 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
     </button>
   </PageHeader>
 
-  <div
-    id='pokemon-image'
-    class='cursor-pointer transition-transform active:scale-95'
-  >
-    <PokemonCard
-      name={name}
-      url={url}
-      isBig
-    />
-  </div>
-  <div class='grid grid-cols-2 gap-4 max-w-sm mx-auto mt-6'>
-    <button
-      id='btn-cry'
-      class='btn-big bg-orange-700 hover:bg-orange-800'
+  {/* La casilla «Brillante» cambia las imágenes solo con CSS (group-has-checked) */}
+  <div class='group'>
+    <div
+      id='pokemon-image'
+      class='p-8 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
     >
-      <Icon
-        name='speaker'
-        size={48}
+      <Image
+        transition:name={`${name}-image`}
+        src={imageSrc}
+        alt={`Imagen de ${spanishName}`}
+        class='mx-auto group-has-checked:hidden'
+        width={360}
+        height={360}
+        format='avif'
+        loading='eager'
       />
-      Sonido
-    </button>
-    <button
-      class='btn-big bg-indigo-600 hover:bg-indigo-700'
-      data-speak={spokenName}
-    >
-      <Icon
-        name='voice'
-        size={48}
+      <img
+        src={shinyImageSrc}
+        alt={`Imagen de ${spanishName} brillante`}
+        class='hidden mx-auto group-has-checked:block'
+        width='360'
+        height='360'
+        loading='lazy'
       />
-      Nombre
-    </button>
+    </div>
+
+    <div class='grid grid-cols-3 gap-4 max-w-sm mx-auto mt-6'>
+      <button
+        id='btn-cry'
+        class='btn-big bg-orange-700 hover:bg-orange-800'
+      >
+        <Icon
+          name='speaker'
+          size={48}
+        />
+        Sonido
+      </button>
+      <button
+        class='btn-big bg-indigo-600 hover:bg-indigo-700'
+        data-speak={spokenName}
+      >
+        <Icon
+          name='voice'
+          size={48}
+        />
+        Nombre
+      </button>
+      <label
+        class='btn-big cursor-pointer bg-slate-600 has-checked:bg-yellow-400 has-checked:text-slate-900 has-focus-visible:outline-2 has-focus-visible:outline-white'
+      >
+        <input
+          type='checkbox'
+          class='sr-only'
+        />
+        <Icon
+          name='sparkle'
+          size={48}
+        />
+        Brillante
+      </label>
+    </div>
+
+    {
+      description && (
+        <button
+          class='flex items-center gap-4 w-full max-w-sm mx-auto mt-6 p-4 rounded-2xl bg-slate-900 border border-slate-600 text-left transition-transform active:scale-95'
+          data-speak={description}
+        >
+          <img
+            src={animatedSrc}
+            alt=''
+            class='size-24 shrink-0 object-contain [image-rendering:pixelated] group-has-checked:hidden'
+          />
+          <img
+            src={shinyAnimatedSrc}
+            alt=''
+            loading='lazy'
+            class='hidden size-24 shrink-0 object-contain [image-rendering:pixelated] group-has-checked:block'
+          />
+          <span>{description}</span>
+        </button>
+      )
+    }
   </div>
   <audio
     id='cry'
@@ -136,35 +201,33 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
 
       const name = btnFavorite.dataset.name ?? ''
       const id = btnFavorite.dataset.id ?? ''
-      const isFavorite = favorites.some((fav) => fav.name === name)
 
       const heartOutline = btnFavorite.querySelector(
         '[data-outline]'
       ) as HTMLElement
       const heartFull = btnFavorite.querySelector('[data-full]') as HTMLElement
 
-      if (isFavorite) {
-        heartOutline.classList.add('hidden')
-        heartFull.classList.remove('hidden')
+      const isFavorite = () => favorites.some((fav) => fav.name === name)
+
+      const showFavorite = () => {
+        heartOutline.classList.toggle('hidden', isFavorite())
+        heartFull.classList.toggle('hidden', !isFavorite())
+        btnFavorite.setAttribute('aria-pressed', String(isFavorite()))
       }
 
       const toggleFavorite = () => {
-        const isFavorite = favorites.some((fav) => fav.name === name)
-
-        if (isFavorite) {
+        if (isFavorite()) {
           favorites = favorites.filter((fav) => fav.name !== name)
         } else {
           favorites.push({ id: +id, name })
         }
 
         localStorage.setItem('favorites', JSON.stringify(favorites))
+        showFavorite()
       }
 
-      btnFavorite.addEventListener('click', () => {
-        heartOutline.classList.toggle('hidden')
-        heartFull.classList.toggle('hidden')
-        toggleFavorite()
-      })
+      showFavorite()
+      btnFavorite.addEventListener('click', toggleFavorite)
     }
 
     document.addEventListener('astro:page-load', handlePageLoad)

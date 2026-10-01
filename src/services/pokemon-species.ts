@@ -48,6 +48,25 @@ export const getColors = async (): Promise<Record<string, string>> => {
   return Object.fromEntries(species.map(({ name, color }) => [name, color.name]))
 }
 
+// Texto de la Pokédex en español; el más corto, que es el más fácil de
+// escuchar para un niño. Los textos traen saltos de línea de los juegos.
+export const getDescriptions = async (): Promise<Record<string, string>> => {
+  const species = await getAllSpecies()
+
+  return Object.fromEntries(
+    species.map(({ name, flavor_text_entries }) => {
+      const texts = flavor_text_entries
+        .filter(({ language }) => language.name === 'es')
+        .map(({ flavor_text }) => flavor_text.replace(/\s+/g, ' ').trim())
+      const shortest = texts.reduce(
+        (a, b) => (b.length < a.length ? b : a),
+        texts[0] ?? ''
+      )
+      return [name, shortest]
+    })
+  )
+}
+
 // La voz no lee bien ♀ y ♂: se dicen como en el anime en español
 export const toSpokenName = (spanishName: string) =>
   spanishName.replace('♀', ' hembra').replace('♂', ' macho')

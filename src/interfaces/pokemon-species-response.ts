@@ -6,6 +6,14 @@ interface PokemonSpeciesName {
   }
 }
 
+interface PokemonSpeciesFlavorText {
+  flavor_text: string
+  language: {
+    name: string
+    url: string
+  }
+}
+
 interface PokemonSpeciesResponse {
   name: string
   names: PokemonSpeciesName[]
@@ -13,4 +21,5 @@ interface PokemonSpeciesResponse {
     name: string
     url: string
   }
+  flavor_text_entries: PokemonSpeciesFlavorText[]
 }
