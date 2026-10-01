@@ -5,6 +5,7 @@ import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
+import { getSpanishNames } from 'src/services/spanish-names'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -27,15 +28,23 @@ const { url } = Astro.props
 
 const id = url.split('/').at(-2)
 
-const PAGE_TITLE = `#${id} ${name.toLocaleUpperCase()}`
+const spanishName = (await getSpanishNames())[name] ?? name
+
+const PAGE_TITLE = `#${id} ${spanishName.toLocaleUpperCase()}`
+
+// La voz no lee bien ♀ y ♂: se dicen como en el anime en español
+const spokenName = spanishName.replace('♀', ' hembra').replace('♂', ' macho')
 
 const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
 const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+
+const BIG_BUTTON =
+  'flex flex-col items-center gap-1 py-4 rounded-2xl text-lg font-bold text-white transition-transform active:scale-95'
 ---
 
 <MainLayout
-  title={`#${id} ${name.toLocaleUpperCase()}`}
-  description={`Información, Imágen y Sonido del Pokémon ${name.toLocaleUpperCase()}`}
+  title={PAGE_TITLE}
+  description={`Información, Imagen y Sonido del Pokémon ${spanishName.toLocaleUpperCase()}`}
   image={imageSrc}
 >
   <PageHeader>
@@ -72,20 +81,47 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
     </button>
   </PageHeader>
 
-  <PokemonCard
-    name={name}
-    url={url}
-    isBig
-  />
+  <div
+    id='pokemon-image'
+    class='cursor-pointer transition-transform active:scale-95'
+  >
+    <PokemonCard
+      name={name}
+      url={url}
+      isBig
+    />
+  </div>
+  <div class='grid grid-cols-2 gap-4 max-w-sm mx-auto mt-6'>
+    <button
+      id='btn-cry'
+      class:list={[BIG_BUTTON, 'bg-orange-700 hover:bg-orange-800']}
+    >
+      <Icon
+        name='speaker'
+        size={48}
+      />
+      Sonido
+    </button>
+    <button
+      id='btn-name'
+      class:list={[BIG_BUTTON, 'bg-indigo-600 hover:bg-indigo-700']}
+      data-name={spokenName}
+    >
+      <Icon
+        name='voice'
+        size={48}
+      />
+      Nombre
+    </button>
+  </div>
   <audio
-    controls
-    class='mt-6 mx-auto'
+    id='cry'
+    preload='auto'
   >
     <source
       src={audioSrc}
       type='audio/ogg'
     />
-    Your browser does not support the audio element.
   </audio>
 </MainLayout>
 
@@ -137,4 +173,30 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
   }
 
   document.addEventListener('astro:page-load', handlePageLoad)
+
+  const handleSounds = () => {
+    const cry = document.getElementById('cry') as HTMLAudioElement
+    const pokemonImage = document.getElementById('pokemon-image') as HTMLDivElement
+    const btnCry = document.getElementById('btn-cry') as HTMLButtonElement
+    const btnName = document.getElementById('btn-name') as HTMLButtonElement
+
+    if (!cry || !pokemonImage || !btnCry || !btnName) return
+
+    const playCry = () => {
+      cry.currentTime = 0
+      cry.play()
+    }
+
+    pokemonImage.addEventListener('click', playCry)
+    btnCry.addEventListener('click', playCry)
+
+    btnName.addEventListener('click', () => {
+      const utterance = new SpeechSynthesisUtterance(btnName.dataset.name)
+      utterance.lang = 'es-ES'
+      speechSynthesis.cancel()
+      speechSynthesis.speak(utterance)
+    })
+  }
+
+  document.addEventListener('astro:page-load', handleSounds)
 </script>

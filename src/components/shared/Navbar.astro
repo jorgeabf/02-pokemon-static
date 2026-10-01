@@ -1,49 +1,35 @@
 ---
 const navItems = [
-  { href: '/', text: 'Inicio' },
   { href: '/pokemons/1/', text: 'Pokemons' },
-  { href: '/favoritos/', text: 'Favoritos' },
-  { href: '/islas/', text: 'Islas' }
+  { href: '/favoritos/', text: 'Favoritos' }
 ]
 
 const currentPath = Astro.url.pathname
 ---
 
 <nav class='bg-white shadow dark:bg-slate-800'>
-  <div
-    class='container flex items-center justify-between p-4 mx-auto text-gray-600 capitalize dark:text-gray-300'
+  <ul
+    class='container flex justify-center gap-8 sm:gap-12 p-4 mx-auto text-gray-800 capitalize dark:text-gray-200'
   >
     {
       navItems.map(({ href, text }) => (
-        <div class="flex justify-center items-center">
+        <li>
           <a
             href={href}
-            class='text-gray-800 dark:text-gray-200 mx-6'
+            aria-current={currentPath === href ? 'page' : undefined}
           >
             {text}
           </a>
           {currentPath === href ? (
             <div
               transition:name='nav-line'
-              class='mt-1 border-b-2 border-indigo-500 mx-5'
+              class='mt-1 border-b-2 border-indigo-500'
             />
           ) : (
-            <div class='mt-1 border-b-2 border-transparent mx-5' />
+            <div class='mt-1 border-b-2 border-transparent' />
           )}
-        </div>
+        </li>
       ))
     }
-    <script is:inline>
-      netlifyIdentity.setLocale('es')
-    </script>
-    <script
-      is:inline
-      src='https://identity.netlify.com/v1/netlify-identity-widget.js'
-    ></script>
-    <div
-      data-netlify-identity-button
-      class='bg-green-600 py-2 px-4 rounded-md w-fit m-auto'
-    >
-    </div>
-  </div>
+  </ul>
 </nav>

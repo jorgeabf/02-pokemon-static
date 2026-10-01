@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets'
+import { getSpanishNames } from 'src/services/spanish-names'
 
 interface Props {
   url: string
@@ -9,11 +10,16 @@ interface Props {
 
 const { url, name, isBig } = Astro.props
 const id = url.split('/').at(-2)
+const spanishName = (await getSpanishNames())[name] ?? name
 
 const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+
+// En la ficha (isBig) la tarjeta no enlaza a su propia página
+const Wrapper = isBig ? 'div' : 'a'
+const href = isBig ? undefined : `/pokemons/${name}`
 ---
 
-<a href={`/pokemons/${name}`}>
+<Wrapper href={href}>
   <article
     class:list={[
       'bg-slate-900 border border-slate-600 p-4 rounded-2xl relative',
@@ -25,7 +31,7 @@ const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/
     <Image
       transition:name={`${name}-image`}
       src={image}
-      alt={`Imagen de ${name}`}
+      alt={`Imagen de ${spanishName}`}
       class='mx-auto'
       width={isBig ? 360 : 180}
       height={isBig ? 360 : 180}
@@ -35,7 +41,7 @@ const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/
 
     <h3 class:list={['text-center capitalize ', isBig && 'hidden']}>
       #{id}
-      {name}
+      {spanishName}
     </h3>
   </article>
-</a>
+</Wrapper>
