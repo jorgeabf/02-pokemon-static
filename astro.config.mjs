@@ -6,5 +6,8 @@ import solidJs from "@astrojs/solid-js";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), icon(), solidJs()]
+  integrations: [tailwind(), icon(), solidJs()],
+  redirects: {
+    '/': '/pokemons/1/'
+  }
 });

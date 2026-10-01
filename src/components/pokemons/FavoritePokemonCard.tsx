@@ -3,9 +3,10 @@ import { createSignal, Show, type Component } from 'solid-js'
 
 interface Props {
   pokemon: FavoritePokemon
+  spanishName: string
 }
 
-const FavoritePokemonCard: Component<Props> = ({ pokemon }) => {
+const FavoritePokemonCard: Component<Props> = ({ pokemon, spanishName }) => {
   const [isvisible, setIsvisible] = createSignal(true)
   const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`
 
@@ -29,12 +30,13 @@ const FavoritePokemonCard: Component<Props> = ({ pokemon }) => {
         >
           <img
             src={imageSrc}
-            alt={pokemon.name}
+            alt={spanishName}
             width={140}
             height={140}
+            class='mx-auto'
             style={{ 'view-transition-name': `${pokemon.name}-image` }}
           />
-          <h3 class='capitalize'>{pokemon.name}</h3>
+          <h3 class='capitalize'>{spanishName}</h3>
         </a>
         <button
           onClick={deleteFavoritePokemon}
