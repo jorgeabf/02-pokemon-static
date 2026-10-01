@@ -8,7 +8,8 @@
       "@layouts/*": ["./src/layouts/*"],
       "interfaces/*": ["./src/interfaces/*"],
       "consts/*": ["./src/consts/*"],
-      "services/*": ["./src/services/*"]
+      "services/*": ["./src/services/*"],
+      "scripts/*": ["./src/scripts/*"]
     },
     "jsx": "preserve",
     "jsxImportSource": "solid-js"

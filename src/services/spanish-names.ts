@@ -24,6 +24,10 @@ const fetchSpanishNames = async (): Promise<Record<string, string>> => {
   )
 }
 
+// La voz no lee bien ♀ y ♂: se dicen como en el anime en español
+export const toSpokenName = (spanishName: string) =>
+  spanishName.replace('♀', ' hembra').replace('♂', ' macho')
+
 let spanishNames: Promise<Record<string, string>> | undefined
 
 // Se piden una sola vez y se comparten entre todas las páginas.
