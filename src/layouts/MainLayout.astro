@@ -1,7 +1,8 @@
 ---
 import Navbar from '@components/shared/Navbar.astro'
-import { ViewTransitions } from 'astro:transitions'
-import { SITE_INFO } from 'src/consts/site-info'
+import { ClientRouter } from 'astro:transitions'
+import { SITE_INFO } from 'consts/site-info'
+import '../styles/global.css'
 
 interface Props {
   title?: string
@@ -59,7 +60,7 @@ const {
       property='og:image'
       content={image}
     />
-    <ViewTransitions />
+    <ClientRouter />
   </head>
 
   <body class='bg-slate-800 text-slate-100'>
@@ -67,14 +68,5 @@ const {
     <main class='max-w-6xl mx-auto px-6 pb-12 relative'>
       <slot />
     </main>
-    <style is:global>
-      .btn {
-        @apply bg-orange-700 hover:bg-orange-800 text-white font-bold rounded-xl size-10 grid place-content-center;
-      }
-
-      .btn-disabled {
-        @apply cursor-not-allowed bg-slate-500 pointer-events-none;
-      }
-    </style>
   </body>
 </html>

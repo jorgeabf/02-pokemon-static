@@ -2,6 +2,7 @@
   "name": "02-pokemon-static",
   "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@11.24.0",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -11,13 +12,13 @@
     "sync": "astro sync"
   },
   "dependencies": {
-    "@astrojs/check": "^0.7.0",
-    "@astrojs/solid-js": "^4.4.0",
-    "@astrojs/tailwind": "^5.1.0",
-    "astro": "^4.11.0",
-    "astro-icon": "^1.1.0",
-    "solid-js": "^1.8.17",
-    "tailwindcss": "^3.4.4",
-    "typescript": "^5.5.2"
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/solid-js": "^7.0.2",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.5",
+    "astro-icon": "^1.2.0",
+    "solid-js": "^1.9.15",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
   }
 }

@@ -5,7 +5,7 @@ import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
-import { getSpanishNames } from 'src/services/spanish-names'
+import { getSpanishNames } from 'services/spanish-names'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -123,80 +123,80 @@ const BIG_BUTTON =
       type='audio/ogg'
     />
   </audio>
-</MainLayout>
 
-<script>
-  import type { FavoritePokemon } from 'interfaces/favorite-pokemon'
+  <script>
+    import type { FavoritePokemon } from 'interfaces/favorite-pokemon'
 
-  const handlePageLoad = () => {
-    let favorites: FavoritePokemon[] = JSON.parse(
-      localStorage.getItem('favorites') ?? '[]'
-    )
+    const handlePageLoad = () => {
+      let favorites: FavoritePokemon[] = JSON.parse(
+        localStorage.getItem('favorites') ?? '[]'
+      )
 
-    const btnFavorite = document.getElementById(
-      'btn-favorite'
-    ) as HTMLButtonElement
+      const btnFavorite = document.getElementById(
+        'btn-favorite'
+      ) as HTMLButtonElement
 
-    if (!btnFavorite) return
+      if (!btnFavorite) return
 
-    const name = btnFavorite.dataset.name ?? ''
-    const id = btnFavorite.dataset.id ?? ''
-    const isFavorite = favorites.some((fav) => fav.name === name)
-
-    const heartOutline = btnFavorite.querySelector(
-      '[data-outline]'
-    ) as HTMLElement
-    const heartFull = btnFavorite.querySelector('[data-full]') as HTMLElement
-
-    if (isFavorite) {
-      heartOutline.classList.add('hidden')
-      heartFull.classList.remove('hidden')
-    }
-
-    const toggleFavorite = () => {
+      const name = btnFavorite.dataset.name ?? ''
+      const id = btnFavorite.dataset.id ?? ''
       const isFavorite = favorites.some((fav) => fav.name === name)
 
+      const heartOutline = btnFavorite.querySelector(
+        '[data-outline]'
+      ) as HTMLElement
+      const heartFull = btnFavorite.querySelector('[data-full]') as HTMLElement
+
       if (isFavorite) {
-        favorites = favorites.filter((fav) => fav.name !== name)
-      } else {
-        favorites.push({ id: +id, name })
+        heartOutline.classList.add('hidden')
+        heartFull.classList.remove('hidden')
       }
 
-      localStorage.setItem('favorites', JSON.stringify(favorites))
+      const toggleFavorite = () => {
+        const isFavorite = favorites.some((fav) => fav.name === name)
+
+        if (isFavorite) {
+          favorites = favorites.filter((fav) => fav.name !== name)
+        } else {
+          favorites.push({ id: +id, name })
+        }
+
+        localStorage.setItem('favorites', JSON.stringify(favorites))
+      }
+
+      btnFavorite.addEventListener('click', () => {
+        heartOutline.classList.toggle('hidden')
+        heartFull.classList.toggle('hidden')
+        toggleFavorite()
+      })
     }
 
-    btnFavorite.addEventListener('click', () => {
-      heartOutline.classList.toggle('hidden')
-      heartFull.classList.toggle('hidden')
-      toggleFavorite()
-    })
-  }
+    document.addEventListener('astro:page-load', handlePageLoad)
 
-  document.addEventListener('astro:page-load', handlePageLoad)
+    const handleSounds = () => {
+      const cry = document.getElementById('cry') as HTMLAudioElement
+      const pokemonImage = document.getElementById('pokemon-image') as HTMLDivElement
+      const btnCry = document.getElementById('btn-cry') as HTMLButtonElement
+      const btnName = document.getElementById('btn-name') as HTMLButtonElement
 
-  const handleSounds = () => {
-    const cry = document.getElementById('cry') as HTMLAudioElement
-    const pokemonImage = document.getElementById('pokemon-image') as HTMLDivElement
-    const btnCry = document.getElementById('btn-cry') as HTMLButtonElement
-    const btnName = document.getElementById('btn-name') as HTMLButtonElement
+      if (!cry || !pokemonImage || !btnCry || !btnName) return
 
-    if (!cry || !pokemonImage || !btnCry || !btnName) return
+      const playCry = () => {
+        cry.currentTime = 0
+        cry.play()
+      }
 
-    const playCry = () => {
-      cry.currentTime = 0
-      cry.play()
+      pokemonImage.addEventListener('click', playCry)
+      btnCry.addEventListener('click', playCry)
+
+      btnName.addEventListener('click', () => {
+        const utterance = new SpeechSynthesisUtterance(btnName.dataset.name)
+        utterance.lang = 'es-ES'
+        speechSynthesis.cancel()
+        speechSynthesis.speak(utterance)
+      })
     }
 
-    pokemonImage.addEventListener('click', playCry)
-    btnCry.addEventListener('click', playCry)
-
-    btnName.addEventListener('click', () => {
-      const utterance = new SpeechSynthesisUtterance(btnName.dataset.name)
-      utterance.lang = 'es-ES'
-      speechSynthesis.cancel()
-      speechSynthesis.speak(utterance)
-    })
-  }
-
-  document.addEventListener('astro:page-load', handleSounds)
-</script>
+    document.addEventListener('astro:page-load', handleSounds)
+  </script>
+</MainLayout>

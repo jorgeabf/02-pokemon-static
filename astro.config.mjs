@@ -1,12 +1,15 @@
 import { defineConfig } from 'astro/config';
-import tailwind from "@astrojs/tailwind";
+import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
 
 import solidJs from "@astrojs/solid-js";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), icon(), solidJs()],
+  integrations: [icon(), solidJs()],
+  vite: {
+    plugins: [tailwindcss()]
+  },
   redirects: {
     '/': '/pokemons/1/'
   }
