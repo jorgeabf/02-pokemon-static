@@ -17,4 +17,8 @@
   .btn-disabled {
     @apply cursor-not-allowed bg-slate-500 pointer-events-none;
   }
+
+  .btn-big {
+    @apply flex flex-col items-center gap-1 py-4 rounded-2xl text-lg font-bold text-white transition-transform active:scale-95;
+  }
 }

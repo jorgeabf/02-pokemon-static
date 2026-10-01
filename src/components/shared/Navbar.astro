@@ -1,35 +1,48 @@
 ---
 const navItems = [
   { href: '/pokemons/1/', text: 'Pokemons' },
-  { href: '/favoritos/', text: 'Favoritos' }
+  { href: '/favoritos/', text: 'Favoritos' },
+  { href: '/adivina/', text: 'Adivina' },
+  { href: '/colores/', text: 'Colores' }
 ]
 
 const currentPath = Astro.url.pathname
+
+// La sección es el primer tramo de la ruta: /pokemons/2/ y /pokemons/pikachu
+// son de «Pokemons», /colores/amarillo/ es de «Colores»
+const getSection = (path: string) => path.split('/')[1]
+const currentSection = getSection(currentPath)
 ---
 
 <nav class='bg-white shadow-sm dark:bg-slate-800'>
   <ul
-    class='container flex justify-center gap-8 sm:gap-12 p-4 mx-auto text-gray-800 capitalize dark:text-gray-200'
+    class='container flex justify-between gap-3 sm:justify-center sm:gap-12 p-4 mx-auto text-gray-800 capitalize dark:text-gray-200'
   >
     {
-      navItems.map(({ href, text }) => (
-        <li>
-          <a
-            href={href}
-            aria-current={currentPath === href ? 'page' : undefined}
-          >
-            {text}
-          </a>
-          {currentPath === href ? (
-            <div
-              transition:name='nav-line'
-              class='mt-1 border-b-2 border-indigo-500'
-            />
-          ) : (
-            <div class='mt-1 border-b-2 border-transparent' />
-          )}
-        </li>
-      ))
+      navItems.map(({ href, text }) => {
+        const isCurrentSection = getSection(href) === currentSection
+
+        return (
+          <li>
+            <a
+              href={href}
+              aria-current={
+                currentPath === href ? 'page' : isCurrentSection ? 'true' : undefined
+              }
+            >
+              {text}
+            </a>
+            {isCurrentSection ? (
+              <div
+                transition:name='nav-line'
+                class='mt-1 border-b-2 border-indigo-500'
+              />
+            ) : (
+              <div class='mt-1 border-b-2 border-transparent' />
+            )}
+          </li>
+        )
+      })
     }
   </ul>
 </nav>

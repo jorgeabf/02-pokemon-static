@@ -1,0 +1,36 @@
+---
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { POKEMON_COLORS } from 'consts/pokemon-colors'
+
+const PAGE_TITLE = 'Colores'
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+
+  <ul class='grid grid-cols-3 sm:grid-cols-5 gap-4 max-w-2xl mx-auto'>
+    {
+      POKEMON_COLORS.map(({ slug, name, swatch }) => (
+        <li>
+          <a
+            href={`/colores/${slug}/`}
+            data-speak={name}
+            class='grid gap-2 text-center text-lg font-bold transition-transform active:scale-95'
+          >
+            <span
+              class:list={[
+                'aspect-square rounded-full border-4 border-slate-600',
+                swatch
+              ]}
+            />
+            {name}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</MainLayout>

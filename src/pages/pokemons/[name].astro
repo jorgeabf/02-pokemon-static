@@ -5,7 +5,7 @@ import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
-import { getSpanishNames } from 'services/spanish-names'
+import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -32,14 +32,10 @@ const spanishName = (await getSpanishNames())[name] ?? name
 
 const PAGE_TITLE = `#${id} ${spanishName.toLocaleUpperCase()}`
 
-// La voz no lee bien ♀ y ♂: se dicen como en el anime en español
-const spokenName = spanishName.replace('♀', ' hembra').replace('♂', ' macho')
+const spokenName = toSpokenName(spanishName)
 
 const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
 const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
-
-const BIG_BUTTON =
-  'flex flex-col items-center gap-1 py-4 rounded-2xl text-lg font-bold text-white transition-transform active:scale-95'
 ---
 
 <MainLayout
@@ -94,7 +90,7 @@ const BIG_BUTTON =
   <div class='grid grid-cols-2 gap-4 max-w-sm mx-auto mt-6'>
     <button
       id='btn-cry'
-      class:list={[BIG_BUTTON, 'bg-orange-700 hover:bg-orange-800']}
+      class='btn-big bg-orange-700 hover:bg-orange-800'
     >
       <Icon
         name='speaker'
@@ -103,9 +99,8 @@ const BIG_BUTTON =
       Sonido
     </button>
     <button
-      id='btn-name'
-      class:list={[BIG_BUTTON, 'bg-indigo-600 hover:bg-indigo-700']}
-      data-name={spokenName}
+      class='btn-big bg-indigo-600 hover:bg-indigo-700'
+      data-speak={spokenName}
     >
       <Icon
         name='voice'
@@ -126,6 +121,7 @@ const BIG_BUTTON =
 
   <script>
     import type { FavoritePokemon } from 'interfaces/favorite-pokemon'
+    import { playSound } from 'scripts/sounds'
 
     const handlePageLoad = () => {
       let favorites: FavoritePokemon[] = JSON.parse(
@@ -177,24 +173,11 @@ const BIG_BUTTON =
       const cry = document.getElementById('cry') as HTMLAudioElement
       const pokemonImage = document.getElementById('pokemon-image') as HTMLDivElement
       const btnCry = document.getElementById('btn-cry') as HTMLButtonElement
-      const btnName = document.getElementById('btn-name') as HTMLButtonElement
 
-      if (!cry || !pokemonImage || !btnCry || !btnName) return
+      if (!cry || !pokemonImage || !btnCry) return
 
-      const playCry = () => {
-        cry.currentTime = 0
-        cry.play()
-      }
-
-      pokemonImage.addEventListener('click', playCry)
-      btnCry.addEventListener('click', playCry)
-
-      btnName.addEventListener('click', () => {
-        const utterance = new SpeechSynthesisUtterance(btnName.dataset.name)
-        utterance.lang = 'es-ES'
-        speechSynthesis.cancel()
-        speechSynthesis.speak(utterance)
-      })
+      pokemonImage.addEventListener('click', () => playSound(cry))
+      btnCry.addEventListener('click', () => playSound(cry))
     }
 
     document.addEventListener('astro:page-load', handleSounds)

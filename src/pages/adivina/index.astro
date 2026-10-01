@@ -1,0 +1,129 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+
+const PAGE_TITLE = '¿Quién es ese Pokémon?'
+
+const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
+const { results } = (await resp.json()) as PokemonListResponse
+const spanishNames = await getSpanishNames()
+
+const pokemons = results.map(({ name, url }) => {
+  const id = url.split('/').at(-2)
+  const spanishName = spanishNames[name] ?? name
+
+  return {
+    name: spanishName,
+    spokenName: toSpokenName(spanishName),
+    image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+    cry: `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
+  }
+})
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+
+  <div
+    id='game'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    <button
+      id='game-reveal'
+      aria-label='Descubrir'
+      class='p-8 rounded-2xl bg-radial from-yellow-200 to-sky-500 transition-transform active:scale-95'
+    >
+      <img
+        id='game-image'
+        alt=''
+        class='aspect-square w-full brightness-0 group-data-revealed:brightness-100 group-data-revealed:transition-[filter] group-data-revealed:duration-700'
+      />
+    </button>
+
+    <p class='text-center text-3xl font-black'>
+      <span class='group-data-revealed:hidden'>?</span>
+      <span
+        id='game-name'
+        class='hidden group-data-revealed:inline'
+      ></span>
+    </p>
+
+    <button
+      id='game-next'
+      class='btn-big bg-orange-700 hover:bg-orange-800'
+    >
+      <Icon
+        name='arrow-right'
+        size={48}
+      />
+      Otro
+    </button>
+  </div>
+  <audio
+    id='game-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import { playSound, speak } from 'scripts/sounds'
+
+    interface GamePokemon {
+      name: string
+      spokenName: string
+      image: string
+      cry: string
+    }
+
+    const handleGame = () => {
+      const game = document.getElementById('game') as HTMLDivElement
+
+      if (!game) return
+
+      const image = document.getElementById('game-image') as HTMLImageElement
+      const name = document.getElementById('game-name') as HTMLSpanElement
+      const cry = document.getElementById('game-cry') as HTMLAudioElement
+      const btnReveal = document.getElementById('game-reveal') as HTMLButtonElement
+      const btnNext = document.getElementById('game-next') as HTMLButtonElement
+
+      const pokemons: GamePokemon[] = JSON.parse(game.dataset.pokemons ?? '[]')
+      let current: GamePokemon | undefined
+
+      const showRandomPokemon = () => {
+        const candidates = pokemons.filter((pokemon) => pokemon !== current)
+        current = candidates[Math.floor(Math.random() * candidates.length)]
+
+        delete game.dataset.revealed
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        image.src = current.image
+        image.alt = 'Pokémon misterioso'
+        name.textContent = current.name
+        cry.src = current.cry
+      }
+
+      const reveal = () => {
+        if (!current) return
+
+        const { name: pokemonName, spokenName } = current
+
+        game.dataset.revealed = ''
+        image.alt = `Imagen de ${pokemonName}`
+        cry.onended = () => speak(`¡Es ${spokenName}!`)
+        playSound(cry)
+      }
+
+      btnReveal.addEventListener('click', reveal)
+      btnNext.addEventListener('click', showRandomPokemon)
+      showRandomPokemon()
+    }
+
+    document.addEventListener('astro:page-load', handleGame)
+  </script>
+</MainLayout>
