@@ -68,5 +68,14 @@ const {
     <main class='max-w-6xl mx-auto px-6 pb-12 relative'>
       <slot />
     </main>
+    <script>
+      import { speak } from 'scripts/sounds'
+
+      // Cualquier elemento con data-speak dice su texto al tocarlo
+      document.addEventListener('click', (event) => {
+        const target = (event.target as Element).closest<HTMLElement>('[data-speak]')
+        if (target?.dataset.speak) speak(target.dataset.speak)
+      })
+    </script>
   </body>
 </html>

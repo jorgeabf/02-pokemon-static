@@ -7,7 +7,7 @@ const fetchSpecies = async (id: number) => {
   return (await resp.json()) as PokemonSpeciesResponse
 }
 
-const fetchSpanishNames = async (): Promise<Record<string, string>> => {
+const fetchAllSpecies = async () => {
   const ids = Array.from({ length: POKEMON_COUNT }, (_, index) => index + 1)
   const species: PokemonSpeciesResponse[] = []
 
@@ -15,6 +15,24 @@ const fetchSpanishNames = async (): Promise<Record<string, string>> => {
     const batch = ids.slice(i, i + BATCH_SIZE)
     species.push(...(await Promise.all(batch.map(fetchSpecies))))
   }
+
+  return species
+}
+
+let allSpecies: Promise<PokemonSpeciesResponse[]> | undefined
+
+// Se piden una sola vez y se comparten entre todas las páginas.
+// Si fallan, no se guarda el error para reintentar en la siguiente petición.
+const getAllSpecies = () => {
+  allSpecies ??= fetchAllSpecies().catch((error) => {
+    allSpecies = undefined
+    throw error
+  })
+  return allSpecies
+}
+
+export const getSpanishNames = async (): Promise<Record<string, string>> => {
+  const species = await getAllSpecies()
 
   return Object.fromEntries(
     species.map(({ name, names }) => [
@@ -24,18 +42,12 @@ const fetchSpanishNames = async (): Promise<Record<string, string>> => {
   )
 }
 
+export const getColors = async (): Promise<Record<string, string>> => {
+  const species = await getAllSpecies()
+
+  return Object.fromEntries(species.map(({ name, color }) => [name, color.name]))
+}
+
 // La voz no lee bien ♀ y ♂: se dicen como en el anime en español
 export const toSpokenName = (spanishName: string) =>
   spanishName.replace('♀', ' hembra').replace('♂', ' macho')
-
-let spanishNames: Promise<Record<string, string>> | undefined
-
-// Se piden una sola vez y se comparten entre todas las páginas.
-// Si fallan, no se guarda el error para reintentar en la siguiente petición.
-export const getSpanishNames = () => {
-  spanishNames ??= fetchSpanishNames().catch((error) => {
-    spanishNames = undefined
-    throw error
-  })
-  return spanishNames
-}

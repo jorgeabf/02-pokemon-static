@@ -2,7 +2,8 @@
 const navItems = [
   { href: '/pokemons/1/', text: 'Pokemons' },
   { href: '/favoritos/', text: 'Favoritos' },
-  { href: '/adivina/', text: 'Adivina' }
+  { href: '/adivina/', text: 'Adivina' },
+  { href: '/colores/', text: 'Colores' }
 ]
 
 const currentPath = Astro.url.pathname
@@ -10,7 +11,7 @@ const currentPath = Astro.url.pathname
 
 <nav class='bg-white shadow-sm dark:bg-slate-800'>
   <ul
-    class='container flex justify-center gap-8 sm:gap-12 p-4 mx-auto text-gray-800 capitalize dark:text-gray-200'
+    class='container flex justify-between gap-3 sm:justify-center sm:gap-12 p-4 mx-auto text-gray-800 capitalize dark:text-gray-200'
   >
     {
       navItems.map(({ href, text }) => (

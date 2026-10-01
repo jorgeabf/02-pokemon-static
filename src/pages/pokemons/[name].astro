@@ -5,7 +5,7 @@ import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
-import { getSpanishNames, toSpokenName } from 'services/spanish-names'
+import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
@@ -99,9 +99,8 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
       Sonido
     </button>
     <button
-      id='btn-name'
       class='btn-big bg-indigo-600 hover:bg-indigo-700'
-      data-name={spokenName}
+      data-speak={spokenName}
     >
       <Icon
         name='voice'
@@ -122,7 +121,7 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
 
   <script>
     import type { FavoritePokemon } from 'interfaces/favorite-pokemon'
-    import { playSound, speak } from 'scripts/sounds'
+    import { playSound } from 'scripts/sounds'
 
     const handlePageLoad = () => {
       let favorites: FavoritePokemon[] = JSON.parse(
@@ -174,13 +173,11 @@ const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprit
       const cry = document.getElementById('cry') as HTMLAudioElement
       const pokemonImage = document.getElementById('pokemon-image') as HTMLDivElement
       const btnCry = document.getElementById('btn-cry') as HTMLButtonElement
-      const btnName = document.getElementById('btn-name') as HTMLButtonElement
 
-      if (!cry || !pokemonImage || !btnCry || !btnName) return
+      if (!cry || !pokemonImage || !btnCry) return
 
       pokemonImage.addEventListener('click', () => playSound(cry))
       btnCry.addEventListener('click', () => playSound(cry))
-      btnName.addEventListener('click', () => speak(btnName.dataset.name ?? ''))
     }
 
     document.addEventListener('astro:page-load', handleSounds)

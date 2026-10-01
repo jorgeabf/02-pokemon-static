@@ -9,4 +9,8 @@ interface PokemonSpeciesName {
 interface PokemonSpeciesResponse {
   name: string
   names: PokemonSpeciesName[]
+  color: {
+    name: string
+    url: string
+  }
 }
