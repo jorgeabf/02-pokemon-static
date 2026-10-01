@@ -40,7 +40,7 @@ const FavoritePokemonCard: Component<Props> = ({ pokemon, spanishName }) => {
         </a>
         <button
           onClick={deleteFavoritePokemon}
-          class='bg-red-700 text-center text-white px-2 py-1 rounded w-full mt-4'
+          class='bg-red-700 text-center text-white px-2 py-1 rounded-sm w-full mt-4'
         >
           Borrar
         </button>

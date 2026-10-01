@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets'
-import { getSpanishNames } from 'src/services/spanish-names'
+import { getSpanishNames } from 'services/spanish-names'
 
 interface Props {
   url: string
@@ -40,8 +40,7 @@ const href = isBig ? undefined : `/pokemons/${name}`
     />
 
     <h3 class:list={['text-center capitalize ', isBig && 'hidden']}>
-      #{id}
-      {spanishName}
+      #{id} {spanishName}
     </h3>
   </article>
 </Wrapper>
