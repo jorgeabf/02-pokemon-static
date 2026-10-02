@@ -16,7 +16,7 @@ const countStages = ({ evolvesTo }: Evolution): number =>
 {/* Contenedor y --stages para que todas las fases quepan en una fila (.evolution-item) */}
 <section
   aria-label='¿En qué se convierte?'
-  class='@container max-w-sm mx-auto mt-6'
+  class='@container max-w-sm mx-auto mt-4'
   style={`--stages: ${countStages(evolution)}`}
 >
   <EvolutionTree

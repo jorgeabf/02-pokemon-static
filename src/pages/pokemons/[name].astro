@@ -97,7 +97,7 @@ const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/anima
   <div class='group'>
     <div
       id='pokemon-image'
-      class='p-8 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
+      class='px-8 py-4 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
     >
       <Image
         transition:name={`${name}-image`}
@@ -119,7 +119,7 @@ const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/anima
       />
     </div>
 
-    <div class='grid grid-cols-3 gap-4 max-w-sm mx-auto mt-6'>
+    <div class='grid grid-cols-3 gap-4 max-w-sm mx-auto mt-4'>
       <button
         id='btn-cry'
         aria-label='Sonido'
@@ -158,7 +158,7 @@ const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/anima
     {
       description && (
         <button
-          class='flex items-center gap-4 w-full max-w-sm mx-auto mt-6 p-4 rounded-2xl bg-slate-900 border border-slate-600 text-left transition-transform active:scale-95'
+          class='flex items-center gap-4 w-full max-w-sm mx-auto mt-4 p-4 rounded-2xl bg-slate-900 border border-slate-600 text-left transition-transform active:scale-95'
           data-speak={description}
         >
           <img
