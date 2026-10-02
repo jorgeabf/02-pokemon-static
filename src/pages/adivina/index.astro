@@ -3,25 +3,11 @@ import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
-import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+import { getGamePokemons } from 'services/game-pokemons'
 
 const PAGE_TITLE = '¿Quién es ese Pokémon?'
 
-const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
-const { results } = (await resp.json()) as PokemonListResponse
-const spanishNames = await getSpanishNames()
-
-const pokemons = results.map(({ name, url }) => {
-  const id = url.split('/').at(-2)
-  const spanishName = spanishNames[name] ?? name
-
-  return {
-    name: spanishName,
-    spokenName: toSpokenName(spanishName),
-    image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
-    cry: `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
-  }
-})
+const pokemons = await getGamePokemons()
 ---
 
 <MainLayout title={PAGE_TITLE}>
@@ -71,14 +57,9 @@ const pokemons = results.map(({ name, url }) => {
   ></audio>
 
   <script>
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
-
-    interface GamePokemon {
-      name: string
-      spokenName: string
-      image: string
-      cry: string
-    }
 
     const handleGame = () => {
       const game = document.getElementById('game') as HTMLDivElement
@@ -95,8 +76,7 @@ const pokemons = results.map(({ name, url }) => {
       let current: GamePokemon | undefined
 
       const showRandomPokemon = () => {
-        const candidates = pokemons.filter((pokemon) => pokemon !== current)
-        current = candidates[Math.floor(Math.random() * candidates.length)]
+        current = pickOther(pokemons, current)
 
         delete game.dataset.revealed
         cry.onended = null

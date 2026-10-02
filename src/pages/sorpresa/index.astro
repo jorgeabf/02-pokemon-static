@@ -1,0 +1,154 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import Pokeball from '@components/shared/Pokeball.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getGamePokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = 'Pokébola sorpresa'
+
+const pokemons = await getGamePokemons()
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+
+  {/* data-shaking mientras se mece y data-open al abrirse: cada paso lo anima el CSS */}
+  <div
+    id='surprise'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    <button
+      id='surprise-open'
+      aria-label='Abrir'
+      class='grid place-items-center aspect-square p-8 overflow-hidden rounded-2xl bg-radial from-slate-600 to-slate-900 transition-transform active:scale-95'
+    >
+      <span
+        class='col-start-1 row-start-1 w-3/4 origin-bottom motion-safe:group-data-shaking:animate-ball-shake'
+      >
+        <Pokeball
+          class='w-full'
+          topClass='group-data-open:opacity-0 motion-safe:group-data-open:animate-ball-open-top'
+          bottomClass='group-data-open:opacity-0 motion-safe:group-data-open:animate-ball-open-bottom'
+        />
+      </span>
+      <span
+        class='col-start-1 row-start-1 size-3/4 rounded-full bg-white opacity-0 motion-safe:group-data-open:animate-ball-flash'
+      ></span>
+      <img
+        id='surprise-image'
+        alt=''
+        class='col-start-1 row-start-1 aspect-square w-full opacity-0 group-data-open:opacity-100 motion-safe:group-data-open:animate-pokemon-pop'
+      />
+    </button>
+
+    <p class='text-center text-3xl font-black'>
+      <span class='group-data-open:hidden'>?</span>
+      <span
+        id='surprise-name'
+        class='hidden group-data-open:inline'
+      ></span>
+    </p>
+
+    <button
+      id='surprise-next'
+      aria-label='Otra'
+      class='btn-big bg-orange-700 hover:bg-orange-800'
+    >
+      <Icon
+        name='arrow-right'
+        size={40}
+      />
+    </button>
+  </div>
+  <audio
+    id='surprise-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { pickOther } from 'scripts/random'
+    import { playSound, speak } from 'scripts/sounds'
+
+    const handleSurprise = () => {
+      const surprise = document.getElementById('surprise') as HTMLDivElement
+
+      if (!surprise) return
+
+      const image = document.getElementById('surprise-image') as HTMLImageElement
+      const name = document.getElementById('surprise-name') as HTMLSpanElement
+      const cry = document.getElementById('surprise-cry') as HTMLAudioElement
+      const btnOpen = document.getElementById('surprise-open') as HTMLButtonElement
+      const btnNext = document.getElementById('surprise-next') as HTMLButtonElement
+
+      const pokemons: GamePokemon[] = JSON.parse(surprise.dataset.pokemons ?? '[]')
+      let current: GamePokemon | undefined
+      let state: 'closed' | 'opening' | 'open' = 'closed'
+      // Cada Pokéball nueva es otra ronda: lo que quedara de la anterior se descarta
+      let round = 0
+
+      // Acaban también si se cancelan (al pulsar «Otra»), y sin animaciones
+      // (movimiento reducido) no hay nada que esperar
+      const animationsEnd = () =>
+        Promise.allSettled(
+          surprise.getAnimations({ subtree: true }).map(({ finished }) => finished)
+        )
+
+      const sayName = ({ spokenName }: GamePokemon) => {
+        cry.onended = () => speak(`¡Es ${spokenName}!`)
+        playSound(cry)
+      }
+
+      const prepareBall = () => {
+        round++
+        state = 'closed'
+        current = pickOther(pokemons, current)
+
+        delete surprise.dataset.shaking
+        delete surprise.dataset.open
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        // La imagen y el grito se cargan mientras la Pokéball está cerrada
+        image.src = current.image
+        image.alt = ''
+        name.textContent = current.name
+        cry.src = current.cry
+      }
+
+      const openBall = async () => {
+        if (!current || state === 'opening') return
+        if (state === 'open') return sayName(current)
+
+        const pokemon = current
+        const thisRound = round
+        state = 'opening'
+
+        surprise.dataset.shaking = ''
+        // Mientras se mece da tiempo a que llegue la imagen
+        await Promise.all([animationsEnd(), image.decode().catch(() => {})])
+        if (thisRound !== round) return
+
+        delete surprise.dataset.shaking
+        surprise.dataset.open = ''
+        image.alt = `Imagen de ${pokemon.name}`
+        await animationsEnd()
+        if (thisRound !== round) return
+
+        state = 'open'
+        sayName(pokemon)
+      }
+
+      btnOpen.addEventListener('click', openBall)
+      btnNext.addEventListener('click', prepareBall)
+      prepareBall()
+    }
+
+    document.addEventListener('astro:page-load', handleSurprise)
+  </script>
+</MainLayout>
