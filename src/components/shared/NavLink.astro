@@ -1,0 +1,39 @@
+---
+interface Props {
+  href: string
+  label: string
+}
+
+const { href, label } = Astro.props
+
+// La sección es el primer tramo de la ruta: /pokemons/2/ y /pokemons/pikachu
+// son de «Pokémons», /colores/amarillo/ es de «Colores»
+const getSection = (path: string) => path.split('/')[1]
+
+const currentPath = Astro.url.pathname
+const isCurrentSection = getSection(href) === getSection(currentPath)
+---
+
+<li>
+  <a
+    href={href}
+    aria-label={label}
+    aria-current={
+      currentPath === href ? 'page' : isCurrentSection ? 'true' : undefined
+    }
+    data-speak={label}
+    class='block transition-transform active:scale-95'
+  >
+    <slot />
+  </a>
+  {
+    isCurrentSection ? (
+      <div
+        transition:name='nav-line'
+        class='mt-1 border-b-2 border-indigo-500'
+      />
+    ) : (
+      <div class='mt-1 border-b-2 border-transparent' />
+    )
+  }
+</li>
