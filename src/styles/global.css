@@ -21,4 +21,14 @@
   .btn-big {
     @apply flex flex-col items-center gap-1 py-4 rounded-2xl text-lg font-bold text-white transition-transform active:scale-95;
   }
+
+  /* Cadena de evolución: todas las fases miden lo mismo y caben en una fila.
+     100cqi es el ancho de la sección, que fija --stages; entre fase y fase
+     va una flecha de --spacing(6) (size-6) */
+  .evolution-item {
+    width: min(
+      --spacing(32),
+      calc((100cqi - (var(--stages) - 1) * --spacing(6)) / var(--stages))
+    );
+  }
 }

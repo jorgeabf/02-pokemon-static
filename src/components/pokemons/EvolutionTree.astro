@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets'
+import { Icon } from 'astro-icon/components'
+import type { Evolution } from 'interfaces/evolution'
+import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+
+interface Props {
+  evolution: Evolution
+  current: string
+}
+
+const { evolution, current } = Astro.props
+const { id, name, evolvesTo } = evolution
+
+const spanishName = (await getSpanishNames())[name] ?? name
+const spokenName = toSpokenName(spanishName)
+
+const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+const itemClass =
+  'evolution-item shrink-0 p-1 rounded-2xl border-2 bg-slate-900 transition-transform active:scale-95'
+---
+
+<div class='flex items-center justify-center'>
+  {
+    name === current ? (
+      <button
+        aria-current='page'
+        data-speak={spokenName}
+        class:list={[itemClass, 'border-yellow-400']}
+      >
+        {/* Sin transition:name: ya lo lleva la imagen grande de la ficha */}
+        <Image
+          src={image}
+          alt={spanishName}
+          width={180}
+          height={180}
+          format='avif'
+        />
+      </button>
+    ) : (
+      <a
+        href={`/pokemons/${name}`}
+        data-speak={spokenName}
+        class:list={[itemClass, 'border-slate-600']}
+      >
+        <Image
+          transition:name={`${name}-image`}
+          src={image}
+          alt={spanishName}
+          width={180}
+          height={180}
+          format='avif'
+        />
+      </a>
+    )
+  }
+  {
+    evolvesTo.length > 0 && (
+      <>
+        <Icon
+          name='arrow-right'
+          aria-hidden='true'
+          class='size-6 shrink-0'
+        />
+        <ul class='grid gap-2'>
+          {evolvesTo.map((next) => (
+            <li>
+              <Astro.self
+                evolution={next}
+                current={current}
+              />
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+</div>

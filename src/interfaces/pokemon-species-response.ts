@@ -22,4 +22,7 @@ interface PokemonSpeciesResponse {
     url: string
   }
   flavor_text_entries: PokemonSpeciesFlavorText[]
+  evolution_chain: {
+    url: string
+  }
 }

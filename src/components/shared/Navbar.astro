@@ -1,48 +1,69 @@
 ---
-const navItems = [
-  { href: '/pokemons/1/', text: 'Pokemons' },
-  { href: '/favoritos/', text: 'Favoritos' },
-  { href: '/adivina/', text: 'Adivina' },
-  { href: '/colores/', text: 'Colores' }
-]
+import { Icon } from 'astro-icon/components'
+import NavLink from '@components/shared/NavLink.astro'
+import { POKEMON_COLORS } from 'consts/pokemon-colors'
 
-const currentPath = Astro.url.pathname
-
-// La sección es el primer tramo de la ruta: /pokemons/2/ y /pokemons/pikachu
-// son de «Pokemons», /colores/amarillo/ es de «Colores»
-const getSection = (path: string) => path.split('/')[1]
-const currentSection = getSection(currentPath)
+// Cada enlace es un dibujo de su página, para que Ibai lo reconozca sin leer
+const colorDots = POKEMON_COLORS.filter(({ key }) =>
+  ['red', 'blue', 'green', 'yellow'].includes(key)
+)
 ---
 
 <nav class='bg-white shadow-sm dark:bg-slate-800'>
   <ul
-    class='container flex justify-between gap-3 sm:justify-center sm:gap-12 p-4 mx-auto text-gray-800 capitalize dark:text-gray-200'
+    class='container flex justify-between gap-3 sm:justify-center sm:gap-12 px-4 py-1 mx-auto'
   >
-    {
-      navItems.map(({ href, text }) => {
-        const isCurrentSection = getSection(href) === currentSection
-
-        return (
-          <li>
-            <a
-              href={href}
-              aria-current={
-                currentPath === href ? 'page' : isCurrentSection ? 'true' : undefined
-              }
-            >
-              {text}
-            </a>
-            {isCurrentSection ? (
-              <div
-                transition:name='nav-line'
-                class='mt-1 border-b-2 border-indigo-500'
-              />
-            ) : (
-              <div class='mt-1 border-b-2 border-transparent' />
-            )}
-          </li>
-        )
-      })
-    }
+    <NavLink
+      href='/pokemons/1/'
+      label='Pokémons'
+    >
+      {/* La misma Pokéball que el icono de la app */}
+      <img
+        src='/favicon.svg'
+        alt=''
+        width='48'
+        height='48'
+        class='size-12'
+      />
+    </NavLink>
+    <NavLink
+      href='/favoritos/'
+      label='Favoritos'
+    >
+      <Icon
+        name='heart-full'
+        class='size-12 text-red-600'
+      />
+    </NavLink>
+    <NavLink
+      href='/adivina/'
+      label='Adivina'
+    >
+      {/* Mini pantalla del juego: silueta sobre su mismo fondo */}
+      <span
+        class='grid place-items-center size-12 rounded-lg bg-radial from-yellow-200 to-sky-500'
+      >
+        <img
+          src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
+          alt=''
+          width='40'
+          height='40'
+          class='size-10 brightness-0'
+        />
+      </span>
+    </NavLink>
+    <NavLink
+      href='/colores/'
+      label='Colores'
+    >
+      {/* Como los círculos de la página de colores */}
+      <span class='grid grid-cols-2 gap-1 size-12'>
+        {
+          colorDots.map(({ swatch }) => (
+            <span class:list={['rounded-full', swatch]} />
+          ))
+        }
+      </span>
+    </NavLink>
   </ul>
 </nav>
