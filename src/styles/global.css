@@ -1,5 +1,93 @@
 @import 'tailwindcss';
 
+/* Pokébola sorpresa: se mece, se abre con un destello y sale el Pokémon.
+   Con transformaciones sueltas (rotate, translate, scale) para que se sumen
+   a las de las utilidades en vez de pisarlas */
+@theme {
+  --animate-ball-shake: ball-shake 1.5s ease-in-out;
+  --animate-ball-open-top: ball-open-top 0.6s ease-out;
+  --animate-ball-open-bottom: ball-open-bottom 0.6s ease-in;
+  --animate-ball-flash: ball-flash 0.6s ease-out;
+  /* backwards: invisible mientras espera a que el destello esté en lo alto */
+  --animate-pokemon-pop: pokemon-pop 0.5s ease-out 0.2s backwards;
+
+  /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos */
+  @keyframes ball-shake {
+    0%,
+    16%,
+    33%,
+    49%,
+    66%,
+    82%,
+    100% {
+      rotate: 0deg;
+    }
+    8%,
+    74% {
+      rotate: -20deg;
+    }
+    41% {
+      rotate: 20deg;
+    }
+  }
+
+  /* Con from explícito: en ese momento la mitad ya tiene opacity-0 debajo */
+  @keyframes ball-open-top {
+    from {
+      opacity: 1;
+    }
+    50% {
+      opacity: 1;
+      rotate: -40deg;
+    }
+    to {
+      opacity: 0;
+      rotate: -60deg;
+      translate: 0 -40%;
+    }
+  }
+
+  @keyframes ball-open-bottom {
+    from,
+    50% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      translate: 0 30%;
+    }
+  }
+
+  @keyframes ball-flash {
+    from {
+      opacity: 0;
+      scale: 0.3;
+    }
+    30% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      scale: 2.5;
+    }
+  }
+
+  @keyframes pokemon-pop {
+    from {
+      opacity: 0;
+      scale: 0;
+    }
+    70% {
+      opacity: 1;
+      scale: 1.1;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+}
+
 /* Tailwind 4 deja los botones con el cursor por defecto; se recupera el de v3 */
 @layer base {
   button:not(:disabled),

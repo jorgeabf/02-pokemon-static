@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components'
 import NavLink from '@components/shared/NavLink.astro'
+import Pokeball from '@components/shared/Pokeball.astro'
 import { POKEMON_COLORS } from 'consts/pokemon-colors'
 
 // Cada enlace es un dibujo de su página, para que Ibai lo reconozca sin leer
@@ -18,13 +19,7 @@ const colorDots = POKEMON_COLORS.filter(({ key }) =>
       label='Pokémons'
     >
       {/* La misma Pokéball que el icono de la app */}
-      <img
-        src='/favicon.svg'
-        alt=''
-        width='48'
-        height='48'
-        class='size-12'
-      />
+      <Pokeball class='size-12' />
     </NavLink>
     <NavLink
       href='/favoritos/'
@@ -63,6 +58,22 @@ const colorDots = POKEMON_COLORS.filter(({ key }) =>
             <span class:list={['rounded-full', swatch]} />
           ))
         }
+      </span>
+    </NavLink>
+    <NavLink
+      href='/sorpresa/'
+      label='Sorpresa'
+    >
+      {/* La Pokéball de inicio, pero abriéndose y con un destello */}
+      <span class='relative block size-12'>
+        <Pokeball
+          class='absolute bottom-0 left-0 size-10'
+          topClass='-rotate-30'
+        />
+        <Icon
+          name='sparkle'
+          class='absolute top-0 right-0 size-6 text-yellow-400'
+        />
       </span>
     </NavLink>
   </ul>
