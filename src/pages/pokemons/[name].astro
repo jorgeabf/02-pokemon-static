@@ -3,10 +3,12 @@ import type { GetStaticPaths } from 'astro'
 import { Image } from 'astro:assets'
 import MainLayout from '@layouts/MainLayout.astro'
 import { Icon } from 'astro-icon/components'
+import EvolutionChain from '@components/pokemons/EvolutionChain.astro'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import {
   getDescriptions,
+  getEvolutions,
   getSpanishNames,
   toSpokenName
 } from 'services/pokemon-species'
@@ -34,6 +36,7 @@ const id = url.split('/').at(-2)
 
 const spanishName = (await getSpanishNames())[name] ?? name
 const description = (await getDescriptions())[name]
+const evolution = (await getEvolutions())[name]
 
 const PAGE_TITLE = `#${id} ${spanishName.toLocaleUpperCase()}`
 
@@ -174,6 +177,15 @@ const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/anima
       )
     }
   </div>
+
+  {
+    evolution && evolution.evolvesTo.length > 0 && (
+      <EvolutionChain
+        evolution={evolution}
+        current={name}
+      />
+    )
+  }
   <audio
     id='cry'
     preload='auto'

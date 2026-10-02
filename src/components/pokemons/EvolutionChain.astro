@@ -1,0 +1,26 @@
+---
+import EvolutionTree from '@components/pokemons/EvolutionTree.astro'
+import type { Evolution } from 'interfaces/evolution'
+
+interface Props {
+  evolution: Evolution
+  current: string
+}
+
+const { evolution, current } = Astro.props
+
+const countStages = ({ evolvesTo }: Evolution): number =>
+  1 + Math.max(0, ...evolvesTo.map(countStages))
+---
+
+{/* Contenedor y --stages para que todas las fases quepan en una fila (.evolution-item) */}
+<section
+  aria-label='¿En qué se convierte?'
+  class='@container max-w-sm mx-auto mt-6'
+  style={`--stages: ${countStages(evolution)}`}
+>
+  <EvolutionTree
+    evolution={evolution}
+    current={current}
+  />
+</section>
