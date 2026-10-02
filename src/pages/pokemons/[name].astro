@@ -122,36 +122,36 @@ const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/anima
     <div class='grid grid-cols-3 gap-4 max-w-sm mx-auto mt-6'>
       <button
         id='btn-cry'
+        aria-label='Sonido'
         class='btn-big bg-orange-700 hover:bg-orange-800'
       >
         <Icon
           name='speaker'
-          size={48}
+          size={40}
         />
-        Sonido
       </button>
       <button
+        aria-label='Nombre'
         class='btn-big bg-indigo-600 hover:bg-indigo-700'
         data-speak={spokenName}
       >
         <Icon
           name='voice'
-          size={48}
+          size={40}
         />
-        Nombre
       </button>
       <label
         class='btn-big cursor-pointer bg-slate-600 has-checked:bg-yellow-400 has-checked:text-slate-900 has-focus-visible:outline-2 has-focus-visible:outline-white'
       >
         <input
           type='checkbox'
+          aria-label='Brillante'
           class='sr-only'
         />
         <Icon
           name='sparkle'
-          size={48}
+          size={40}
         />
-        Brillante
       </label>
     </div>
 
