@@ -14,6 +14,7 @@ const currentPath = Astro.url.pathname
 const isCurrentSection = getSection(href) === getSection(currentPath)
 ---
 
+{/* La sección actual lleva un fondo detrás del dibujo, para que Ibai vea dónde está */}
 <li>
   <a
     href={href}
@@ -22,18 +23,11 @@ const isCurrentSection = getSection(href) === getSection(currentPath)
       currentPath === href ? 'page' : isCurrentSection ? 'true' : undefined
     }
     data-speak={label}
-    class='block transition-transform active:scale-95'
+    class:list={[
+      'block p-1 rounded-2xl transition-transform active:scale-95',
+      { 'bg-slate-700': isCurrentSection }
+    ]}
   >
     <slot />
   </a>
-  {
-    isCurrentSection ? (
-      <div
-        transition:name='nav-line'
-        class='mt-1 border-b-2 border-indigo-500'
-      />
-    ) : (
-      <div class='mt-1 border-b-2 border-transparent' />
-    )
-  }
 </li>
