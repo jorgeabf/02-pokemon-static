@@ -63,9 +63,16 @@ const { habitat, pokemons } = Astro.props
     </button>
   </PageHeader>
 
+  {/* La cueva está a oscuras y se busca con una linterna. Cabe sin scroll en
+      3 columnas, porque arrastrar el dedo por ella mueve la luz y no la página */}
   <ul
     aria-label={habitat.label}
-    class='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'
+    class:list={[
+      'grid',
+      habitat.key === 'cave'
+        ? 'flashlight grid-cols-3 sm:grid-cols-4 gap-3 p-3 rounded-3xl'
+        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'
+    ]}
   >
     {
       pokemons.map(({ name, url }) => (
@@ -78,4 +85,28 @@ const { habitat, pokemons } = Astro.props
       ))
     }
   </ul>
+
+  <script>
+    const handleFlashlight = () => {
+      const flashlight = document.querySelector<HTMLElement>('.flashlight')
+
+      if (!flashlight) return
+
+      // CSS no sabe dónde está el dedo: se lo pasa el JS en --x, --y
+      const moveLight = ({ clientX, clientY }: PointerEvent) => {
+        const { left, top } = flashlight.getBoundingClientRect()
+        flashlight.style.setProperty('--x', `${clientX - left}px`)
+        flashlight.style.setProperty('--y', `${clientY - top}px`)
+      }
+
+      flashlight.addEventListener('pointerdown', moveLight)
+      flashlight.addEventListener('pointermove', moveLight)
+      // Con el dedo quieto encima de un Pokémon, Chrome abriría su menú o
+      // empezaría a arrastrar la imagen, y la luz dejaría de seguir al dedo
+      flashlight.addEventListener('contextmenu', (event) => event.preventDefault())
+      flashlight.addEventListener('dragstart', (event) => event.preventDefault())
+    }
+
+    document.addEventListener('astro:page-load', handleFlashlight)
+  </script>
 </MainLayout>

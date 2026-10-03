@@ -119,4 +119,21 @@
       calc((100cqi - (var(--stages) - 1) * --spacing(6)) / var(--stages))
     );
   }
+
+  /* Linterna: a oscuras salvo un círculo de luz en --x, --y (los fija el JS
+     al mover el dedo). touch-none para que arrastrar el dedo mueva la luz y
+     no la página; la capa oscura deja pasar los toques a lo que tapa */
+  .flashlight {
+    @apply relative touch-none;
+
+    &::after {
+      content: '';
+      @apply absolute inset-0 pointer-events-none rounded-[inherit];
+      background: radial-gradient(
+        circle at var(--x, 50%) var(--y, 50%),
+        transparent --spacing(16),
+        --alpha(var(--color-slate-950) / 97%) --spacing(24)
+      );
+    }
+  }
 }
