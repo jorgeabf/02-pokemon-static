@@ -1,0 +1,112 @@
+---
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+
+const PAGE_TITLE = 'Mi álbum'
+
+const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
+const { results } = (await resp.json()) as PokemonListResponse
+const spanishNames = await getSpanishNames()
+
+const pokemons = results.map(({ name, url }) => {
+  const spanishName = spanishNames[name] ?? name
+  return {
+    id: url.split('/').at(-2),
+    name,
+    spanishName,
+    spokenName: toSpokenName(spanishName)
+  }
+})
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+
+  {/* Cuántos tiene: al tocarlo se dice (el script pone la cuenta) */}
+  <button
+    id='album-count'
+    class='grid gap-2 w-full max-w-sm mx-auto mb-4 p-4 rounded-2xl bg-slate-900 border border-slate-600 text-xl font-black transition-transform active:scale-95'
+  >
+    <progress
+      id='album-progress'
+      max={pokemons.length}
+      value='0'
+      class='w-full h-4 appearance-none overflow-hidden rounded-full bg-slate-700 [&::-moz-progress-bar]:bg-yellow-400 [&::-webkit-progress-bar]:bg-slate-700 [&::-webkit-progress-value]:bg-yellow-400'
+    ></progress>
+    <span><span id='album-total'>0</span> de {pokemons.length}</span>
+  </button>
+
+  {/* Las que faltan, en sombra y sin enlace (un <a> sin href no se puede tocar);
+      el script colorea las atrapadas y las enlaza a su ficha */}
+  <ul
+    id='album-grid'
+    aria-label='Pokémon del álbum'
+    class='grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2'
+  >
+    {
+      pokemons.map(({ id, name, spanishName, spokenName }) => (
+        <li
+          class='group'
+          data-id={id}
+        >
+          <a
+            data-name={name}
+            data-label={spanishName}
+            data-spoken={spokenName}
+            class='block p-1 rounded-xl bg-slate-900 border border-slate-600 transition-transform group-data-captured:active:scale-95'
+          >
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${id}.svg`}
+              alt=''
+              width='64'
+              height='64'
+              loading='lazy'
+              class='aspect-square w-full object-contain brightness-0 invert opacity-20 group-data-captured:brightness-100 group-data-captured:invert-0 group-data-captured:opacity-100'
+            />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <script>
+    import { getAlbum } from 'scripts/album'
+
+    const handleAlbum = () => {
+      const grid = document.getElementById('album-grid') as HTMLUListElement
+
+      if (!grid) return
+
+      const btnCount = document.getElementById('album-count') as HTMLButtonElement
+      const progress = document.getElementById('album-progress') as HTMLProgressElement
+      const total = document.getElementById('album-total') as HTMLSpanElement
+
+      const album = getAlbum()
+
+      album.forEach((id) => {
+        const item = grid.querySelector<HTMLLIElement>(`[data-id="${id}"]`)
+        const link = item?.querySelector('a')
+
+        if (!item || !link) return
+
+        item.dataset.captured = ''
+        link.href = `/pokemons/${link.dataset.name}`
+        link.setAttribute('aria-label', link.dataset.label ?? '')
+        link.dataset.speak = link.dataset.spoken
+      })
+
+      progress.value = album.length
+      total.textContent = String(album.length)
+      btnCount.dataset.speak =
+        album.length === 0
+          ? 'Todavía no tienes ninguno. ¡Ve a atraparlos!'
+          : `Tienes ${album.length} Pokémon de ${progress.max}`
+    }
+
+    document.addEventListener('astro:page-load', handleAlbum)
+  </script>
+</MainLayout>
