@@ -4,11 +4,15 @@ import { createSignal, Show, type Component } from 'solid-js'
 interface Props {
   pokemon: FavoritePokemon
   spanishName: string
+  imageSrc: string
 }
 
-const FavoritePokemonCard: Component<Props> = ({ pokemon, spanishName }) => {
+const FavoritePokemonCard: Component<Props> = ({
+  pokemon,
+  spanishName,
+  imageSrc
+}) => {
   const [isvisible, setIsvisible] = createSignal(true)
-  const imageSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`
   let dialog!: HTMLDialogElement
 
   const askDelete = () => {

@@ -4,8 +4,12 @@ import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
+import { getPokemonDrawings } from 'services/pokemon-images'
 
 const PAGE_TITLE = 'Juegos'
+
+// Pikachu, Charizard, Charmander, Snorlax, Squirtle y Bulbasaur
+const drawings = await getPokemonDrawings([25, 6, 4, 143, 7, 1])
 
 // Cada juego es un dibujo de su pantalla, para que Ibai lo reconozca sin leer
 const tileClass =
@@ -27,7 +31,7 @@ const tileClass =
       >
         {/* Silueta sobre el mismo fondo que el juego */}
         <img
-          src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
+          src={drawings[25]}
           alt=''
           width='120'
           height='120'
@@ -65,14 +69,14 @@ const tileClass =
         {/* Charmander y, detrás, en blanco como al evolucionar, Charizard */}
         <span class='relative aspect-square w-full'>
           <img
-            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/6.svg'
+            src={drawings[6]}
             alt=''
             width='96'
             height='96'
             class='absolute top-0 right-0 aspect-square w-4/5 object-contain brightness-0 invert'
           />
           <img
-            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/4.svg'
+            src={drawings[4]}
             alt=''
             width='60'
             height='60'
@@ -91,7 +95,7 @@ const tileClass =
         {/* Pikachu en el bosque y la Pokéball volando hacia él */}
         <span class='relative aspect-square w-full'>
           <img
-            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
+            src={drawings[25]}
             alt=''
             width='80'
             height='80'
@@ -117,14 +121,14 @@ const tileClass =
             class='absolute inset-x-0 top-[62%] h-1.5 rotate-12 rounded-full bg-amber-800'
           ></span>
           <img
-            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/143.svg'
+            src={drawings[143]}
             alt=''
             width='60'
             height='60'
             class='absolute right-0 bottom-[28%] aspect-square w-1/2 object-contain'
           />
           <img
-            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
+            src={drawings[25]}
             alt=''
             width='40'
             height='40'
@@ -149,7 +153,7 @@ const tileClass =
               { id: 1, position: 'bottom-0 right-0' }
             ].map(({ id, position }) => (
               <img
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${id}.svg`}
+                src={drawings[id]}
                 alt=''
                 width='54'
                 height='54'

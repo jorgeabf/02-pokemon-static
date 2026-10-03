@@ -3,6 +3,7 @@ import { Icon } from 'astro-icon/components'
 import NavLink from '@components/shared/NavLink.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
+import { getPokemonDrawings } from 'services/pokemon-images'
 
 // Cada enlace es un dibujo de su página, para que Ibai lo reconozca sin leer
 const habitatTiles = POKEMON_HABITATS.filter(({ key }) =>
@@ -15,6 +16,7 @@ const albumSample = [
   { id: 4, captured: false },
   { id: 7, captured: true }
 ]
+const drawings = await getPokemonDrawings(albumSample.map(({ id }) => id))
 ---
 
 {/* Fijo arriba para cambiar de sección sin subir; z-10 lo deja encima de lo
@@ -80,7 +82,7 @@ const albumSample = [
         {
           albumSample.map(({ id, captured }) => (
             <img
-              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${id}.svg`}
+              src={drawings[id]}
               alt=''
               width='22'
               height='22'

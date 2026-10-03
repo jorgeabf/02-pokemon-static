@@ -6,6 +6,7 @@ import type {
   WeighedPokemon,
   WildPokemon
 } from 'interfaces/game-pokemon'
+import { getCryUrl, getPokemonImage } from 'services/pokemon-images'
 import {
   getCaptureRates,
   getEvolutionChains,
@@ -27,20 +28,26 @@ const getPokemonList = async () => {
   }))
 }
 
-// Lo que usan los juegos: número, nombre, voz, imagen y grito
-const toGamePokemon = (id: number, spanishName: string): GamePokemon => ({
+// Lo que usan los juegos: número, nombre, voz, imagen y grito (servidos
+// desde la web)
+const toGamePokemon = async (
+  id: number,
+  spanishName: string
+): Promise<GamePokemon> => ({
   id,
   name: spanishName,
   spokenName: toSpokenName(spanishName),
-  image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
-  cry: `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
+  image: await getPokemonImage(id),
+  cry: getCryUrl(id)
 })
 
 export const getGamePokemons = async (): Promise<GamePokemon[]> => {
   const pokemons = await getPokemonList()
   const spanishNames = await getSpanishNames()
 
-  return pokemons.map(({ name, id }) => toGamePokemon(id, spanishNames[name] ?? name))
+  return Promise.all(
+    pokemons.map(({ name, id }) => toGamePokemon(id, spanishNames[name] ?? name))
+  )
 }
 
 // Las cadenas que tienen alguna evolución, desde su primera fase
@@ -64,11 +71,13 @@ export const getWildPokemons = async (): Promise<WildPokemon[]> => {
   const habitats = await getHabitats()
   const captureRates = await getCaptureRates()
 
-  return pokemons.map(({ name, id }) => ({
-    ...toGamePokemon(id, spanishNames[name] ?? name),
-    captureRate: captureRates[name],
-    tile: POKEMON_HABITATS.find(({ key }) => key === habitats[name])?.tile ?? ''
-  }))
+  return Promise.all(
+    pokemons.map(async ({ name, id }) => ({
+      ...(await toGamePokemon(id, spanishNames[name] ?? name)),
+      captureRate: captureRates[name],
+      tile: POKEMON_HABITATS.find(({ key }) => key === habitats[name])?.tile ?? ''
+    }))
+  )
 }
 
 // Los 151 con su peso, para ¿Cuál pesa más?
@@ -77,10 +86,12 @@ export const getWeighedPokemons = async (): Promise<WeighedPokemon[]> => {
   const spanishNames = await getSpanishNames()
   const weights = await getWeights()
 
-  return pokemons.map(({ name, id }) => ({
-    ...toGamePokemon(id, spanishNames[name] ?? name),
-    weight: weights[name]
-  }))
+  return Promise.all(
+    pokemons.map(async ({ name, id }) => ({
+      ...(await toGamePokemon(id, spanishNames[name] ?? name)),
+      weight: weights[name]
+    }))
+  )
 }
 
 // Los de cada tipo (fire, water…), para Fuego, agua, planta
@@ -92,11 +103,15 @@ export const getPokemonsByType = async (
   const pokemonTypes = await getTypes()
 
   return Object.fromEntries(
-    types.map((type) => [
-      type,
-      pokemons
-        .filter(({ name }) => pokemonTypes[name].includes(type))
-        .map(({ name, id }) => toGamePokemon(id, spanishNames[name] ?? name))
-    ])
+    await Promise.all(
+      types.map(async (type) => [
+        type,
+        await Promise.all(
+          pokemons
+            .filter(({ name }) => pokemonTypes[name].includes(type))
+            .map(({ name, id }) => toGamePokemon(id, spanishNames[name] ?? name))
+        )
+      ])
+    )
   )
 }

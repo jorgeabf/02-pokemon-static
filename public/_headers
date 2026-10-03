@@ -1,2 +1,6 @@
 /manifest.webmanifest
   Content-Type: application/manifest+json
+
+# Sin caché: el navegador tiene que ver enseguida cada versión nueva
+/sw.js
+  Cache-Control: no-cache
