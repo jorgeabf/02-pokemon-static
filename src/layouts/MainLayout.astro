@@ -83,8 +83,14 @@ const {
       })
 
       // Cuando ya ha cargado la página: lo que guarda para jugar sin conexión
-      // no le quita conexión a lo primero que se ve
-      window.addEventListener('load', registerServiceWorker, { once: true })
+      // no le quita conexión a lo primero que se ve. Si la app estaba abierta
+      // desde antes de un despliegue, este script llega al navegar (lo ejecuta
+      // el ClientRouter) y load ya pasó: entonces, ya
+      if (document.readyState === 'complete') {
+        registerServiceWorker()
+      } else {
+        window.addEventListener('load', registerServiceWorker, { once: true })
+      }
     </script>
   </body>
 </html>
