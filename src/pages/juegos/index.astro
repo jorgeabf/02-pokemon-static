@@ -230,5 +230,32 @@ const tileClass =
         </span>
       </a>
     </li>
+    <li>
+      <a
+        href='/juegos/altura/'
+        aria-label='¿Cuál es más alto?'
+        data-speak='¿Cuál es más alto?'
+        class:list={[tileClass, 'bg-linear-to-b from-violet-400 to-pink-200']}
+      >
+        {/* Charizard y Pikachu de pie en la hierba, cada uno a su altura */}
+        <span class='relative aspect-square w-full'>
+          <span class='absolute inset-x-0 bottom-0 h-1/6 rounded-full bg-green-600'></span>
+          <img
+            src={drawings[6]}
+            alt=''
+            width='45'
+            height='45'
+            class='absolute right-0 bottom-[8%] aspect-square w-3/5 object-contain object-bottom'
+          />
+          <img
+            src={drawings[25]}
+            alt=''
+            width='20'
+            height='20'
+            class='absolute left-[8%] bottom-[8%] aspect-square w-1/4 object-contain object-bottom'
+          />
+        </span>
+      </a>
+    </li>
   </ul>
 </MainLayout>
