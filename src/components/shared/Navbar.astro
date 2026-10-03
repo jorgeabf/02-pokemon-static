@@ -2,15 +2,17 @@
 import { Icon } from 'astro-icon/components'
 import NavLink from '@components/shared/NavLink.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
-import { POKEMON_COLORS } from 'consts/pokemon-colors'
+import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
 
 // Cada enlace es un dibujo de su página, para que Ibai lo reconozca sin leer
-const colorDots = POKEMON_COLORS.filter(({ key }) =>
-  ['red', 'blue', 'green', 'yellow'].includes(key)
+const habitatTiles = POKEMON_HABITATS.filter(({ key }) =>
+  ['forest', 'sea', 'mountain', 'urban'].includes(key)
 )
 ---
 
-<nav class='bg-white shadow-sm dark:bg-slate-800'>
+{/* Fijo arriba para cambiar de sección sin subir; z-10 lo deja encima de lo
+    que se apila en las páginas (tarjetas, la oscuridad de la cueva…) */}
+<nav class='sticky top-0 z-10 bg-slate-900 border-b border-slate-600'>
   <ul
     class='container flex justify-between gap-3 sm:justify-center sm:gap-12 px-4 py-1 mx-auto'
   >
@@ -31,49 +33,35 @@ const colorDots = POKEMON_COLORS.filter(({ key }) =>
       />
     </NavLink>
     <NavLink
-      href='/adivina/'
-      label='Adivina'
+      href='/juegos/'
+      label='Juegos'
     >
-      {/* Mini pantalla del juego: silueta sobre su mismo fondo */}
-      <span
-        class='grid place-items-center size-12 rounded-lg bg-radial from-yellow-200 to-sky-500'
-      >
-        <img
-          src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
-          alt=''
-          width='40'
-          height='40'
-          class='size-10 brightness-0'
-        />
-      </span>
+      <Icon
+        name='game-controller'
+        class='size-12 text-violet-500'
+      />
     </NavLink>
     <NavLink
-      href='/colores/'
-      label='Colores'
+      href='/donde-viven/'
+      label='Dónde viven'
     >
-      {/* Como los círculos de la página de colores */}
+      {/* Como las casillas de la página de los sitios */}
       <span class='grid grid-cols-2 gap-1 size-12'>
         {
-          colorDots.map(({ swatch }) => (
-            <span class:list={['rounded-full', swatch]} />
+          habitatTiles.map(({ icon, tile }) => (
+            <span
+              class:list={[
+                'grid place-items-center rounded-md bg-linear-to-b text-white',
+                tile
+              ]}
+            >
+              <Icon
+                name={icon}
+                class='size-4'
+              />
+            </span>
           ))
         }
-      </span>
-    </NavLink>
-    <NavLink
-      href='/sorpresa/'
-      label='Sorpresa'
-    >
-      {/* La Pokéball de inicio, pero abriéndose y con un destello */}
-      <span class='relative block size-12'>
-        <Pokeball
-          class='absolute bottom-0 left-0 size-10'
-          topClass='-rotate-30'
-        />
-        <Icon
-          name='sparkle'
-          class='absolute top-0 right-0 size-6 text-yellow-400'
-        />
       </span>
     </NavLink>
   </ul>

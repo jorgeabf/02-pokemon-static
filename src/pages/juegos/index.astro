@@ -1,0 +1,85 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import Pokeball from '@components/shared/Pokeball.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+
+const PAGE_TITLE = 'Juegos'
+
+// Cada juego es un dibujo de su pantalla, para que Ibai lo reconozca sin leer
+const tileClass =
+  'grid place-items-center aspect-square p-6 rounded-2xl transition-transform active:scale-95'
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+
+  <ul class='grid grid-cols-2 gap-4 max-w-md mx-auto'>
+    <li>
+      <a
+        href='/juegos/adivina/'
+        aria-label='¿Quién es ese Pokémon?'
+        data-speak='¿Quién es ese Pokémon?'
+        class:list={[tileClass, 'bg-radial from-yellow-200 to-sky-500']}
+      >
+        {/* Silueta sobre el mismo fondo que el juego */}
+        <img
+          src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
+          alt=''
+          width='120'
+          height='120'
+          class='aspect-square w-full object-contain brightness-0'
+        />
+      </a>
+    </li>
+    <li>
+      <a
+        href='/juegos/sorpresa/'
+        aria-label='Pokébola sorpresa'
+        data-speak='Pokébola sorpresa'
+        class:list={[tileClass, 'bg-radial from-slate-600 to-slate-900']}
+      >
+        {/* La Pokéball del juego, abriéndose y con un destello */}
+        <span class='relative aspect-square w-full'>
+          <Pokeball
+            class='absolute bottom-0 left-0 size-5/6'
+            topClass='-rotate-30'
+          />
+          <Icon
+            name='sparkle'
+            class='absolute top-0 right-0 size-1/2 text-yellow-400'
+          />
+        </span>
+      </a>
+    </li>
+    <li>
+      <a
+        href='/juegos/evoluciona/'
+        aria-label='¡Evoluciona!'
+        data-speak='¡Evoluciona!'
+        class:list={[tileClass, 'bg-radial from-sky-200 to-indigo-700']}
+      >
+        {/* Charmander y, detrás, en blanco como al evolucionar, Charizard */}
+        <span class='relative aspect-square w-full'>
+          <img
+            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/6.svg'
+            alt=''
+            width='96'
+            height='96'
+            class='absolute top-0 right-0 aspect-square w-4/5 object-contain brightness-0 invert'
+          />
+          <img
+            src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/4.svg'
+            alt=''
+            width='60'
+            height='60'
+            class='absolute bottom-0 left-0 aspect-square w-1/2 object-contain'
+          />
+        </span>
+      </a>
+    </li>
+  </ul>
+</MainLayout>

@@ -1,0 +1,112 @@
+---
+import type { GetStaticPaths } from 'astro'
+import { Icon } from 'astro-icon/components'
+import PokemonCard from '@components/pokemons/PokemonCard.astro'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
+import { getHabitats } from 'services/pokemon-species'
+
+export const getStaticPaths = (async () => {
+  const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
+  const { results } = (await resp.json()) as PokemonListResponse
+  const habitats = await getHabitats()
+
+  return POKEMON_HABITATS.map((habitat) => ({
+    params: { habitat: habitat.slug },
+    props: {
+      habitat,
+      pokemons: results.filter(({ name }) => habitats[name] === habitat.key)
+    }
+  }))
+}) satisfies GetStaticPaths
+
+const { habitat, pokemons } = Astro.props
+---
+
+<MainLayout title={habitat.name}>
+  <PageHeader>
+    <a
+      href='/donde-viven/'
+      aria-label='Volver a los sitios'
+      class='btn'
+    >
+      <Icon
+        name='arrow-left'
+        size={40}
+      />
+    </a>
+    <PageTitle>
+      <span
+        class:list={[
+          'inline-grid place-items-center size-8 mr-2 align-middle rounded-lg bg-linear-to-b text-white',
+          habitat.tile
+        ]}
+      >
+        <Icon
+          name={habitat.icon}
+          size={24}
+        />
+      </span>
+      {habitat.name}
+    </PageTitle>
+    <button
+      aria-label={`Decir ${habitat.name}`}
+      class='btn'
+      data-speak={habitat.name}
+    >
+      <Icon
+        name='speaker'
+        size={28}
+      />
+    </button>
+  </PageHeader>
+
+  {/* La cueva está a oscuras y se busca con una linterna. Cabe sin scroll en
+      3 columnas, porque arrastrar el dedo por ella mueve la luz y no la página */}
+  <ul
+    aria-label={habitat.label}
+    class:list={[
+      'grid',
+      habitat.key === 'cave'
+        ? 'flashlight grid-cols-3 sm:grid-cols-4 gap-3 p-3 rounded-3xl'
+        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'
+    ]}
+  >
+    {
+      pokemons.map(({ name, url }) => (
+        <li>
+          <PokemonCard
+            name={name}
+            url={url}
+          />
+        </li>
+      ))
+    }
+  </ul>
+
+  <script>
+    const handleFlashlight = () => {
+      const flashlight = document.querySelector<HTMLElement>('.flashlight')
+
+      if (!flashlight) return
+
+      // CSS no sabe dónde está el dedo: se lo pasa el JS en --x, --y
+      const moveLight = ({ clientX, clientY }: PointerEvent) => {
+        const { left, top } = flashlight.getBoundingClientRect()
+        flashlight.style.setProperty('--x', `${clientX - left}px`)
+        flashlight.style.setProperty('--y', `${clientY - top}px`)
+      }
+
+      flashlight.addEventListener('pointerdown', moveLight)
+      flashlight.addEventListener('pointermove', moveLight)
+      // Con el dedo quieto encima de un Pokémon, Chrome abriría su menú o
+      // empezaría a arrastrar la imagen, y la luz dejaría de seguir al dedo
+      flashlight.addEventListener('contextmenu', (event) => event.preventDefault())
+      flashlight.addEventListener('dragstart', (event) => event.preventDefault())
+    }
+
+    document.addEventListener('astro:page-load', handleFlashlight)
+  </script>
+</MainLayout>

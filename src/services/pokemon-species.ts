@@ -62,10 +62,12 @@ export const getSpanishNames = async (): Promise<Record<string, string>> => {
   )
 }
 
-export const getColors = async (): Promise<Record<string, string>> => {
+export const getHabitats = async (): Promise<Record<string, string>> => {
   const species = await getAllSpecies()
 
-  return Object.fromEntries(species.map(({ name, color }) => [name, color.name]))
+  return Object.fromEntries(
+    species.map(({ name, habitat }) => [name, habitat?.name ?? ''])
+  )
 }
 
 // Texto de la Pokédex en español; el más corto, que es el más fácil de
@@ -105,10 +107,16 @@ const getNames = ({ name, evolvesTo }: Evolution): string[] => [
   ...evolvesTo.flatMap(getNames)
 ]
 
+// Cada cadena desde su primer Pokémon (también las de uno solo)
+export const getEvolutionChains = async (): Promise<Evolution[]> => {
+  const chains = await getAllEvolutionChains()
+
+  return chains.flatMap(({ chain }) => keepFirstGeneration(chain))
+}
+
 // Cada Pokémon con su cadena entera, desde el primero de ella
 export const getEvolutions = async (): Promise<Record<string, Evolution>> => {
-  const chains = await getAllEvolutionChains()
-  const firsts = chains.flatMap(({ chain }) => keepFirstGeneration(chain))
+  const firsts = await getEvolutionChains()
 
   return Object.fromEntries(
     firsts.flatMap((first) => getNames(first).map((name) => [name, first]))

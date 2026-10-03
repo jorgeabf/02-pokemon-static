@@ -10,6 +10,10 @@
   --animate-ball-flash: ball-flash 0.6s ease-out;
   /* backwards: invisible mientras espera a que el destello esté en lo alto */
   --animate-pokemon-pop: pokemon-pop 0.5s ease-out 0.2s backwards;
+  /* ¡Evoluciona!: la fase actual y la siguiente se turnan cada vez más
+     deprisa, como en los juegos. step-end: cada una aparece de golpe */
+  --animate-evolve-out: evolve-out 3s step-end;
+  --animate-evolve-in: evolve-in 3s step-end;
 
   /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos */
   @keyframes ball-shake {
@@ -86,6 +90,59 @@
       scale: 1;
     }
   }
+
+  /* Una es la contraria de la otra; acaba con la siguiente fase a la vista */
+  @keyframes evolve-out {
+    0%,
+    32%,
+    50%,
+    63%,
+    72%,
+    79%,
+    85%,
+    89%,
+    93% {
+      opacity: 1;
+    }
+    20%,
+    42%,
+    57%,
+    68%,
+    76%,
+    82%,
+    87%,
+    91%,
+    95%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes evolve-in {
+    0%,
+    32%,
+    50%,
+    63%,
+    72%,
+    79%,
+    85%,
+    89%,
+    93% {
+      opacity: 0;
+    }
+    20%,
+    42%,
+    57%,
+    68%,
+    76%,
+    82%,
+    87%,
+    91%,
+    95%,
+    100% {
+      opacity: 1;
+    }
+  }
 }
 
 /* Tailwind 4 deja los botones con el cursor por defecto; se recupera el de v3 */
@@ -118,5 +175,22 @@
       --spacing(32),
       calc((100cqi - (var(--stages) - 1) * --spacing(6)) / var(--stages))
     );
+  }
+
+  /* Linterna: a oscuras salvo un círculo de luz en --x, --y (los fija el JS
+     al mover el dedo). touch-none para que arrastrar el dedo mueva la luz y
+     no la página; la capa oscura deja pasar los toques a lo que tapa */
+  .flashlight {
+    @apply relative touch-none;
+
+    &::after {
+      content: '';
+      @apply absolute inset-0 pointer-events-none rounded-[inherit];
+      background: radial-gradient(
+        circle at var(--x, 50%) var(--y, 50%),
+        transparent --spacing(16),
+        --alpha(var(--color-slate-950) / 97%) --spacing(24)
+      );
+    }
   }
 }
