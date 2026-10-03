@@ -1,0 +1,49 @@
+---
+// Trozos de papel de colores por turnos; cada uno cae por su tira
+const PIECES = 24
+const COLORS = [
+  'bg-red-500',
+  'bg-yellow-400',
+  'bg-sky-500',
+  'bg-green-500',
+  'bg-pink-500',
+  'bg-orange-500'
+]
+
+// Dónde, cuándo y cuánto tarda en caer cada tira, repartidos con productos
+// por primos para que no salgan en filas: de 0 a 0,55 s de retraso y de 1,6 a
+// 2,2 s de caída
+const pieceStyle = (index: number) =>
+  [
+    `left: ${(index * 41) % 100}%`,
+    `animation-delay: ${((index * 7) % 12) * 50}ms`,
+    `animation-duration: ${1600 + ((index * 5) % 7) * 100}ms`
+  ].join('; ')
+---
+
+{/* Confeti que cae cuando el juego lleva data-celebrate. Ocupa su contenedor,
+    que tiene que llevar relative, y no tapa los toques. Cada tira mide lo que
+    el contenedor: en reposo su trozo queda justo encima, recortado, y al caer
+    (translate de un 110 % de su alto) sale por abajo. Las tiras se reparten
+    con su número y no al azar: así el HTML no cambia en cada compilación (ni,
+    con él, la versión del service worker) */}
+<div
+  aria-hidden='true'
+  class='pointer-events-none absolute inset-0 overflow-hidden'
+>
+  {
+    Array.from({ length: PIECES }, (_, index) => (
+      <span
+        class='absolute inset-y-0 w-2 motion-safe:in-data-celebrate:animate-confetti-fall'
+        style={pieceStyle(index)}
+      >
+        <span
+          class:list={[
+            'block h-3 -translate-y-full motion-safe:in-data-celebrate:animate-confetti-flutter',
+            COLORS[index % COLORS.length]
+          ]}
+        />
+      </span>
+    ))
+  }
+</div>

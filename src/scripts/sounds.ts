@@ -1,6 +1,8 @@
+// Si otro grito lo sustituye antes de empezar a sonar, play() falla
+// (AbortError): no es un error, el que vale es el nuevo
 export const playSound = (audio: HTMLAudioElement) => {
   audio.currentTime = 0
-  audio.play()
+  audio.play().catch(() => {})
 }
 
 export const speak = (text: string) => {
@@ -9,3 +11,8 @@ export const speak = (text: string) => {
   speechSynthesis.cancel()
   speechSynthesis.speak(utterance)
 }
+
+// El móvil no deja hablar hasta que se toca algo en la página. Al entrar en un
+// juego desde /juegos/ ya se ha tocado (el ClientRouter no cambia de
+// documento); al abrirlo directamente o al recargar, todavía no
+export const canSpeak = () => navigator.userActivation.hasBeenActive

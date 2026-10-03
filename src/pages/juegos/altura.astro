@@ -1,0 +1,160 @@
+---
+import { Icon } from 'astro-icon/components'
+import GameHeader from '@components/games/GameHeader.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getMeasuredPokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = '¿Cuál es más alto?'
+
+const pokemons = await getMeasuredPokemons()
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <GameHeader title={PAGE_TITLE} />
+
+  {/* data-taller (left o right) dice cuál es más alto y los pone a escala */}
+  <div
+    id='height'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    {/* Escena de 4:3 (en cuadrada sobraría cielo), con el suelo en el sexto
+        de abajo y los dos de pie encima, del mismo tamaño hasta que se elige */}
+    <div
+      class='relative aspect-4/3 overflow-hidden rounded-2xl bg-linear-to-b from-violet-400 to-pink-200'
+    >
+      <div class='absolute inset-x-0 bottom-0 h-1/6 bg-green-600'></div>
+      <div class='absolute inset-x-4 bottom-1/6 grid grid-cols-2 items-end gap-4'>
+        {
+          ['left', 'right'].map((side) => (
+            <button
+              id={`height-${side}`}
+              class='transition-transform active:scale-95'
+            >
+              {/* Al elegir, cada uno escala a --size (el más alto, 1; el otro,
+                  lo que mide en proporción) sobre sus pies. Con rebote: la
+                  curva se pasa un poco y vuelve. Sin data-taller no hay
+                  transición: con «Otro» se igualan de golpe. scale va aquí y
+                  active:scale-95 en el botón: juntos se pisarían */}
+              <img
+                alt=''
+                class='aspect-square w-full origin-bottom group-data-taller:scale-(--size) motion-safe:group-data-taller:transition-[scale] motion-safe:group-data-taller:duration-1000 motion-safe:group-data-taller:ease-[cubic-bezier(0.34,1.56,0.64,1)]'
+              />
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <button
+      id='height-next'
+      aria-label='Otro'
+      class='btn-big bg-orange-700 hover:bg-orange-800'
+    >
+      <Icon
+        name='arrow-right'
+        size={40}
+      />
+    </button>
+  </div>
+  <audio
+    id='height-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { MeasuredPokemon } from 'interfaces/game-pokemon'
+    import { pickOther } from 'scripts/random'
+    import { playSound, speak } from 'scripts/sounds'
+
+    type Side = 'left' | 'right'
+
+    // Para que se note, uno mide al menos el doble que el otro; y como mucho
+    // cinco veces, para que el pequeño no se quede en nada
+    const isClearlyDifferent = (a: MeasuredPokemon, b: MeasuredPokemon) => {
+      const ratio = Math.max(a.height, b.height) / Math.min(a.height, b.height)
+      return ratio >= 2 && ratio <= 5
+    }
+
+    // Redondeado, que es como lo entiende un niño
+    const sayHeight = ({ height }: MeasuredPokemon) => {
+      if (height < 1) return `${Math.round(height * 100)} centímetros`
+      const meters = Math.round(height)
+      return meters === 1 ? 'un metro' : `${meters} metros`
+    }
+
+    const handleHeight = () => {
+      const scene = document.getElementById('height') as HTMLDivElement
+
+      if (!scene) return
+
+      const buttons: Record<Side, HTMLButtonElement> = {
+        left: document.getElementById('height-left') as HTMLButtonElement,
+        right: document.getElementById('height-right') as HTMLButtonElement
+      }
+      const cry = document.getElementById('height-cry') as HTMLAudioElement
+      const btnNext = document.getElementById('height-next') as HTMLButtonElement
+
+      const pokemons: MeasuredPokemon[] = JSON.parse(scene.dataset.pokemons ?? '[]')
+      let pair: Record<Side, MeasuredPokemon> | undefined
+
+      const image = (side: Side) =>
+        buttons[side].querySelector('img') as HTMLImageElement
+
+      const show = (side: Side, pokemon: MeasuredPokemon) => {
+        image(side).src = pokemon.image
+        image(side).alt = `Imagen de ${pokemon.name}`
+        buttons[side].setAttribute('aria-label', pokemon.name)
+      }
+
+      const showPair = () => {
+        delete scene.dataset.taller
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        const first = pickOther(pokemons, pair?.left)
+        const second = pickOther(
+          pokemons.filter((other) => isClearlyDifferent(first, other))
+        )
+        pair =
+          Math.random() < 0.5
+            ? { left: first, right: second }
+            : { left: second, right: first }
+
+        show('left', pair.left)
+        show('right', pair.right)
+      }
+
+      const choose = (side: Side) => {
+        // Una vez a escala, hasta «Otro» no se vuelve a elegir
+        if (!pair || scene.dataset.taller) return
+
+        const taller: Side = pair.left.height > pair.right.height ? 'left' : 'right'
+        const shorter: Side = taller === 'left' ? 'right' : 'left'
+        const tall = pair[taller]
+
+        image(taller).style.setProperty('--size', '1')
+        image(shorter).style.setProperty(
+          '--size',
+          String(pair[shorter].height / tall.height)
+        )
+        scene.dataset.taller = taller
+        cry.src = tall.cry
+        cry.onended = () =>
+          speak(
+            side === taller
+              ? `¡Muy bien! ${tall.spokenName} mide ${sayHeight(tall)}`
+              : `¡Uy! Es más alto ${tall.spokenName}: mide ${sayHeight(tall)}`
+          )
+        playSound(cry)
+      }
+
+      buttons.left.addEventListener('click', () => choose('left'))
+      buttons.right.addEventListener('click', () => choose('right'))
+      btnNext.addEventListener('click', showPair)
+      showPair()
+    }
+
+    document.addEventListener('astro:page-load', handleHeight)
+  </script>
+</MainLayout>

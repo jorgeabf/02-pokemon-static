@@ -27,8 +27,18 @@
   --animate-battle-attack-rival: battle-attack-rival 0.6s ease-in-out;
   --animate-battle-faint: battle-faint 0.6s ease-in;
   --animate-battle-cheer: battle-cheer 0.5s ease-out 2;
+  /* ¿Dónde está…?: el que no es niega con la cabeza (el que es salta con
+     battle-cheer) */
+  --animate-pokemon-no: pokemon-no 0.5s ease-in-out;
+  /* Confeti (components/shared/Confetti.astro): cada trozo cae dando vueltas
+     como un papel. Cada tira cambia el retraso y la duración de la caída
+     (hasta 2,75 s): las vueltas duran 3 s, sin ser infinitas */
+  --animate-confetti-fall: confetti-fall 2s ease-in;
+  --animate-confetti-flutter: confetti-flutter 0.5s linear 6;
 
-  /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos */
+  /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos. El
+     móvil vibra con cada una: si cambian los tiempos, cambiar también el
+     patrón de scripts/vibration.ts */
   @keyframes ball-shake {
     0%,
     16%,
@@ -178,6 +188,33 @@
     }
     50% {
       translate: 0 -15%;
+    }
+  }
+
+  @keyframes pokemon-no {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    20%,
+    60% {
+      rotate: -12deg;
+    }
+    40%,
+    80% {
+      rotate: 12deg;
+    }
+  }
+
+  @keyframes confetti-fall {
+    to {
+      translate: 0 110%;
+    }
+  }
+
+  @keyframes confetti-flutter {
+    to {
+      rotate: x 360deg;
     }
   }
 

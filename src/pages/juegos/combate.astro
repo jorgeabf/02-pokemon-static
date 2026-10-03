@@ -1,7 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
-import PageHeader from '@components/shared/PageHeader.astro'
-import PageTitle from '@components/shared/PageTitle.astro'
+import GameHeader from '@components/games/GameHeader.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { BATTLE_ELEMENTS } from 'consts/battle-elements'
@@ -16,29 +15,7 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
 ---
 
 <MainLayout title={PAGE_TITLE}>
-  <PageHeader>
-    <a
-      href='/juegos/'
-      aria-label='Volver a los juegos'
-      class='btn'
-    >
-      <Icon
-        name='arrow-left'
-        size={40}
-      />
-    </a>
-    <PageTitle>{PAGE_TITLE}</PageTitle>
-    <button
-      aria-label={`Decir ${PAGE_TITLE}`}
-      class='btn'
-      data-speak={PAGE_TITLE}
-    >
-      <Icon
-        name='speaker'
-        size={28}
-      />
-    </button>
-  </PageHeader>
+  <GameHeader title={PAGE_TITLE} />
 
   {/* data-state: idle (esperando), appear, clash y result, con data-result
       (win, lose o tie) desde el punto de vista de Ibai. Cada paso lo anima
@@ -128,6 +105,7 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
   <script>
     import { BATTLE_ELEMENTS } from 'consts/battle-elements'
     import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
@@ -169,13 +147,6 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
         battle.dataset.state = state
       }
 
-      // Acaban también si se cancelan (al elegir otro a mitad), y sin
-      // animaciones (movimiento reducido) no hay nada que esperar
-      const animationsEnd = () =>
-        Promise.allSettled(
-          battle.getAnimations({ subtree: true }).map(({ finished }) => finished)
-        )
-
       const show = (image: HTMLImageElement, pokemon: GamePokemon) => {
         image.src = pokemon.image
         image.alt = `Imagen de ${pokemon.name}`
@@ -209,11 +180,11 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
 
         setState('appear')
         speak(`¡${player.spokenName} contra ${opponent.spokenName}!`)
-        await animationsEnd()
+        await animationsEnd(battle)
         if (thisRound !== round) return
 
         setState('clash')
-        await animationsEnd()
+        await animationsEnd(battle)
         if (thisRound !== round) return
 
         const result = getResult(playerElement, rivalElement)

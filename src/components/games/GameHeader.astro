@@ -1,0 +1,36 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+
+interface Props {
+  title: string
+}
+
+const { title } = Astro.props
+---
+
+{/* La de todos los juegos: volver a la lista, el título y el altavoz que lo dice */}
+<PageHeader>
+  <a
+    href='/juegos/'
+    aria-label='Volver a los juegos'
+    class='btn'
+  >
+    <Icon
+      name='arrow-left'
+      size={40}
+    />
+  </a>
+  <PageTitle>{title}</PageTitle>
+  <button
+    aria-label={`Decir ${title}`}
+    class='btn'
+    data-speak={title}
+  >
+    <Icon
+      name='speaker'
+      size={28}
+    />
+  </button>
+</PageHeader>

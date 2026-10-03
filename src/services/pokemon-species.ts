@@ -30,16 +30,17 @@ const getAllSpecies = cached(() =>
   )
 )
 
-// El peso y los tipos solo están aquí. Cada respuesta pesa ~300 KB (trae
-// todos los movimientos): se queda solo lo que se usa
+// El peso, la altura y los tipos solo están aquí. Cada respuesta pesa ~300 KB
+// (trae todos los movimientos): se queda solo lo que se usa
 const getAllPokemon = cached(async () => {
   const pokemons = await fetchJsonInBatches<PokemonResponse>(
     POKEMON_IDS.map((id) => `https://pokeapi.co/api/v2/pokemon/${id}`)
   )
 
-  return pokemons.map(({ name, weight, types }) => ({
+  return pokemons.map(({ name, weight, height, types }) => ({
     name,
     weight,
+    height,
     types: types.map(({ type }) => type.name)
   }))
 })
@@ -84,6 +85,13 @@ export const getWeights = async (): Promise<Record<string, number>> => {
   const pokemons = await getAllPokemon()
 
   return Object.fromEntries(pokemons.map(({ name, weight }) => [name, weight / 10]))
+}
+
+// En metros
+export const getHeights = async (): Promise<Record<string, number>> => {
+  const pokemons = await getAllPokemon()
+
+  return Object.fromEntries(pokemons.map(({ name, height }) => [name, height / 10]))
 }
 
 // Sus tipos en PokeAPI (fire, water…), uno o dos

@@ -18,6 +18,11 @@ export interface WeighedPokemon extends GamePokemon {
   weight: number
 }
 
+// Para el juego ¿Cuál es más alto?, con su altura en metros
+export interface MeasuredPokemon extends GamePokemon {
+  height: number
+}
+
 // Con las fases en que se puede convertir, para el juego ¡Evoluciona!
 export interface EvolvingPokemon extends GamePokemon {
   evolvesTo: EvolvingPokemon[]

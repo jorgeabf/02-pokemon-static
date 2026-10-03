@@ -3,6 +3,7 @@ import type { Evolution } from 'interfaces/evolution'
 import type {
   EvolvingPokemon,
   GamePokemon,
+  MeasuredPokemon,
   WeighedPokemon,
   WildPokemon
 } from 'interfaces/game-pokemon'
@@ -11,6 +12,7 @@ import {
   getCaptureRates,
   getEvolutionChains,
   getHabitats,
+  getHeights,
   getSpanishNames,
   getTypes,
   getWeights,
@@ -90,6 +92,20 @@ export const getWeighedPokemons = async (): Promise<WeighedPokemon[]> => {
     pokemons.map(async ({ name, id }) => ({
       ...(await toGamePokemon(id, spanishNames[name] ?? name)),
       weight: weights[name]
+    }))
+  )
+}
+
+// Los 151 con su altura, para ¿Cuál es más alto?
+export const getMeasuredPokemons = async (): Promise<MeasuredPokemon[]> => {
+  const pokemons = await getPokemonList()
+  const spanishNames = await getSpanishNames()
+  const heights = await getHeights()
+
+  return Promise.all(
+    pokemons.map(async ({ name, id }) => ({
+      ...(await toGamePokemon(id, spanishNames[name] ?? name)),
+      height: heights[name]
     }))
   )
 }
