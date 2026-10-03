@@ -1,7 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
-import PageHeader from '@components/shared/PageHeader.astro'
-import PageTitle from '@components/shared/PageTitle.astro'
+import GameHeader from '@components/games/GameHeader.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getWildPokemons } from 'services/game-pokemons'
@@ -12,29 +11,7 @@ const pokemons = await getWildPokemons()
 ---
 
 <MainLayout title={PAGE_TITLE}>
-  <PageHeader>
-    <a
-      href='/juegos/'
-      aria-label='Volver a los juegos'
-      class='btn'
-    >
-      <Icon
-        name='arrow-left'
-        size={40}
-      />
-    </a>
-    <PageTitle>{PAGE_TITLE}</PageTitle>
-    <button
-      aria-label={`Decir ${PAGE_TITLE}`}
-      class='btn'
-      data-speak={PAGE_TITLE}
-    >
-      <Icon
-        name='speaker'
-        size={28}
-      />
-    </button>
-  </PageHeader>
+  <GameHeader title={PAGE_TITLE} />
 
   {/* data-state: idle (esperando), throwing, shaking, caught o escaped. Cada
       paso lo anima el CSS; debajo de cada animación ya está como acaba */}
@@ -112,6 +89,7 @@ const pokemons = await getWildPokemons()
   <script>
     import type { WildPokemon } from 'interfaces/game-pokemon'
     import { addToAlbum, getAlbum } from 'scripts/album'
+    import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
@@ -142,13 +120,6 @@ const pokemons = await getWildPokemons()
       const setState = (state: State) => {
         wild.dataset.state = state
       }
-
-      // Acaban también si se cancelan (al pulsar «Otro»), y sin animaciones
-      // (movimiento reducido) no hay nada que esperar
-      const animationsEnd = () =>
-        Promise.allSettled(
-          wild.getAnimations({ subtree: true }).map(({ finished }) => finished)
-        )
 
       const sayAfterCry = (text: string) => {
         cry.onended = () => speak(text)
@@ -186,11 +157,11 @@ const pokemons = await getWildPokemons()
         const thisRound = round
 
         setState('throwing')
-        await animationsEnd()
+        await animationsEnd(wild)
         if (thisRound !== round) return
 
         setState('shaking')
-        await animationsEnd()
+        await animationsEnd(wild)
         if (thisRound !== round) return
 
         if (Math.random() < catchChance(pokemon)) {
@@ -204,7 +175,7 @@ const pokemons = await getWildPokemons()
 
         setState('escaped')
         speak('¡Oh! ¡Se ha escapado!')
-        await animationsEnd()
+        await animationsEnd(wild)
         if (thisRound !== round) return
 
         setState('idle')

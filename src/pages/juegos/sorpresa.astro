@@ -1,7 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
-import PageHeader from '@components/shared/PageHeader.astro'
-import PageTitle from '@components/shared/PageTitle.astro'
+import GameHeader from '@components/games/GameHeader.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getGamePokemons } from 'services/game-pokemons'
@@ -12,29 +11,7 @@ const pokemons = await getGamePokemons()
 ---
 
 <MainLayout title={PAGE_TITLE}>
-  <PageHeader>
-    <a
-      href='/juegos/'
-      aria-label='Volver a los juegos'
-      class='btn'
-    >
-      <Icon
-        name='arrow-left'
-        size={40}
-      />
-    </a>
-    <PageTitle>{PAGE_TITLE}</PageTitle>
-    <button
-      aria-label={`Decir ${PAGE_TITLE}`}
-      class='btn'
-      data-speak={PAGE_TITLE}
-    >
-      <Icon
-        name='speaker'
-        size={28}
-      />
-    </button>
-  </PageHeader>
+  <GameHeader title={PAGE_TITLE} />
 
   {/* data-shaking mientras se mece y data-open al abrirse: cada paso lo anima el CSS */}
   <div
@@ -92,6 +69,7 @@ const pokemons = await getGamePokemons()
 
   <script>
     import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
@@ -111,13 +89,6 @@ const pokemons = await getGamePokemons()
       let state: 'closed' | 'opening' | 'open' = 'closed'
       // Cada Pokéball nueva es otra ronda: lo que quedara de la anterior se descarta
       let round = 0
-
-      // Acaban también si se cancelan (al pulsar «Otra»), y sin animaciones
-      // (movimiento reducido) no hay nada que esperar
-      const animationsEnd = () =>
-        Promise.allSettled(
-          surprise.getAnimations({ subtree: true }).map(({ finished }) => finished)
-        )
 
       const sayName = ({ spokenName }: GamePokemon) => {
         cry.onended = () => speak(`¡Es ${spokenName}!`)
@@ -151,13 +122,13 @@ const pokemons = await getGamePokemons()
 
         surprise.dataset.shaking = ''
         // Mientras se mece da tiempo a que llegue la imagen
-        await Promise.all([animationsEnd(), image.decode().catch(() => {})])
+        await Promise.all([animationsEnd(surprise), image.decode().catch(() => {})])
         if (thisRound !== round) return
 
         delete surprise.dataset.shaking
         surprise.dataset.open = ''
         image.alt = `Imagen de ${pokemon.name}`
-        await animationsEnd()
+        await animationsEnd(surprise)
         if (thisRound !== round) return
 
         state = 'open'

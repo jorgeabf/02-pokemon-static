@@ -1,7 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
-import PageHeader from '@components/shared/PageHeader.astro'
-import PageTitle from '@components/shared/PageTitle.astro'
+import GameHeader from '@components/games/GameHeader.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getEvolvingPokemons } from 'services/game-pokemons'
 
@@ -11,29 +10,7 @@ const pokemons = await getEvolvingPokemons()
 ---
 
 <MainLayout title={PAGE_TITLE}>
-  <PageHeader>
-    <a
-      href='/juegos/'
-      aria-label='Volver a los juegos'
-      class='btn'
-    >
-      <Icon
-        name='arrow-left'
-        size={40}
-      />
-    </a>
-    <PageTitle>{PAGE_TITLE}</PageTitle>
-    <button
-      aria-label={`Decir ${PAGE_TITLE}`}
-      class='btn'
-      data-speak={PAGE_TITLE}
-    >
-      <Icon
-        name='speaker'
-        size={28}
-      />
-    </button>
-  </PageHeader>
+  <GameHeader title={PAGE_TITLE} />
 
   {/* --taps (de 0 a 3) hace crecer el brillo; data-evolving mientras parpadean
       las dos fases y data-evolved al salir la nueva: cada paso lo anima el CSS */}
@@ -94,6 +71,7 @@ const pokemons = await getEvolvingPokemons()
 
   <script>
     import type { EvolvingPokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
@@ -119,13 +97,6 @@ const pokemons = await getEvolvingPokemons()
       let evolving = false
       // Cada Pokémon nuevo es otra ronda: lo que quedara de la anterior se descarta
       let round = 0
-
-      // Acaban también si se cancelan (al pulsar «Otro»), y sin animaciones
-      // (movimiento reducido) no hay nada que esperar
-      const animationsEnd = () =>
-        Promise.allSettled(
-          evolve.getAnimations({ subtree: true }).map(({ finished }) => finished)
-        )
 
       const setTaps = (value: number) => {
         taps = value
@@ -169,7 +140,7 @@ const pokemons = await getEvolvingPokemons()
         if (thisRound !== round) return
 
         evolve.dataset.evolving = ''
-        await animationsEnd()
+        await animationsEnd(evolve)
         if (thisRound !== round) return
 
         show(next)
@@ -179,7 +150,7 @@ const pokemons = await getEvolvingPokemons()
         delete evolve.dataset.evolving
         evolve.dataset.evolved = ''
         setTaps(0)
-        await animationsEnd()
+        await animationsEnd(evolve)
         if (thisRound !== round) return
 
         delete evolve.dataset.evolved
