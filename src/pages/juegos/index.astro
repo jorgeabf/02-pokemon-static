@@ -11,9 +11,10 @@ const PAGE_TITLE = 'Juegos'
 // Pikachu, Charizard, Charmander, Snorlax, Squirtle y Bulbasaur
 const drawings = await getPokemonDrawings([25, 6, 4, 143, 7, 1])
 
-// Cada juego es un dibujo de su pantalla, para que Ibai lo reconozca sin leer
+// Cada juego es un dibujo de su pantalla, para que Ibai lo reconozca sin leer.
+// En 3 columnas, como ¿Dónde viven?: caben 12 juegos sin scroll
 const tileClass =
-  'grid place-items-center aspect-square p-6 rounded-2xl transition-transform active:scale-95'
+  'grid place-items-center aspect-square p-3 rounded-2xl transition-transform active:scale-95'
 ---
 
 <MainLayout title={PAGE_TITLE}>
@@ -21,7 +22,7 @@ const tileClass =
     <PageTitle>{PAGE_TITLE}</PageTitle>
   </PageHeader>
 
-  <ul class='grid grid-cols-2 gap-4 max-w-md mx-auto'>
+  <ul class='grid grid-cols-3 gap-4 max-w-md mx-auto'>
     <li>
       <a
         href='/juegos/adivina/'
