@@ -14,6 +14,19 @@
      deprisa, como en los juegos. step-end: cada una aparece de golpe */
   --animate-evolve-out: evolve-out 3s step-end;
   --animate-evolve-in: evolve-in 3s step-end;
+  /* ¡Atrápalo!: el Pokémon salvaje da saltitos; la Pokébola sube girando y,
+     cuando llega (0.5s), el Pokémon se vuelve blanco y entra en ella.
+     backwards: hasta entonces se ve normal */
+  --animate-pokemon-idle: pokemon-idle 1s ease-in-out infinite;
+  --animate-ball-throw: ball-throw 0.6s ease-out;
+  --animate-pokemon-absorb: pokemon-absorb 0.4s ease-in 0.5s backwards;
+  /* Fuego, agua, planta: los dos se lanzan el uno contra el otro (el de Ibai
+     abajo a la izquierda, el rival arriba a la derecha); luego el que pierde
+     se debilita y el que gana da dos saltos */
+  --animate-battle-attack-player: battle-attack-player 0.6s ease-in-out;
+  --animate-battle-attack-rival: battle-attack-rival 0.6s ease-in-out;
+  --animate-battle-faint: battle-faint 0.6s ease-in;
+  --animate-battle-cheer: battle-cheer 0.5s ease-out 2;
 
   /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos */
   @keyframes ball-shake {
@@ -88,6 +101,83 @@
     to {
       opacity: 1;
       scale: 1;
+    }
+  }
+
+  @keyframes pokemon-idle {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -5%;
+    }
+  }
+
+  /* Sale de donde espera la Pokébola (abajo, translate-y-[175%]) */
+  @keyframes ball-throw {
+    from {
+      translate: 0 175%;
+      rotate: 0deg;
+    }
+    to {
+      translate: 0 0;
+      rotate: -720deg;
+    }
+  }
+
+  @keyframes pokemon-absorb {
+    from {
+      opacity: 1;
+      scale: 1;
+      filter: brightness(1);
+    }
+    to {
+      opacity: 0;
+      scale: 0;
+      filter: brightness(0) invert(1);
+    }
+  }
+
+  @keyframes battle-attack-player {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    40% {
+      translate: 30% -30%;
+    }
+  }
+
+  @keyframes battle-attack-rival {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    40% {
+      translate: -30% 30%;
+    }
+  }
+
+  /* Con from explícito: en ese momento ya tiene opacity-0 debajo */
+  @keyframes battle-faint {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      translate: 0 40%;
+      filter: grayscale(1);
+    }
+  }
+
+  @keyframes battle-cheer {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -15%;
     }
   }
 

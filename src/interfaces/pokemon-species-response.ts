@@ -22,6 +22,8 @@ interface PokemonSpeciesResponse {
     name: string
     url: string
   } | null
+  // De 3 (legendarios) a 255 (los más fáciles de atrapar)
+  capture_rate: number
   flavor_text_entries: PokemonSpeciesFlavorText[]
   evolution_chain: {
     url: string

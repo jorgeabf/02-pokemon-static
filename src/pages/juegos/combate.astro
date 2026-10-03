@@ -1,0 +1,247 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import Pokeball from '@components/shared/Pokeball.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { BATTLE_ELEMENTS } from 'consts/battle-elements'
+import { getPokemonsByType } from 'services/game-pokemons'
+
+const PAGE_TITLE = 'Fuego, agua, planta'
+
+// El rival saca uno cualquiera del tipo que le toque
+const pokemons = await getPokemonsByType(BATTLE_ELEMENTS.map(({ key }) => key))
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <a
+      href='/juegos/'
+      aria-label='Volver a los juegos'
+      class='btn'
+    >
+      <Icon
+        name='arrow-left'
+        size={40}
+      />
+    </a>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+    <button
+      aria-label={`Decir ${PAGE_TITLE}`}
+      class='btn'
+      data-speak={PAGE_TITLE}
+    >
+      <Icon
+        name='speaker'
+        size={28}
+      />
+    </button>
+  </PageHeader>
+
+  {/* data-state: idle (esperando), appear, clash y result, con data-result
+      (win, lose o tie) desde el punto de vista de Ibai. Cada paso lo anima
+      el CSS; debajo de cada animación ya está como acaba */}
+  <div
+    id='battle'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-state='idle'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    {/* Como en los juegos: el rival arriba a la derecha y el de Ibai abajo
+        a la izquierda, cada uno sobre su plataforma */}
+    <div
+      class='relative aspect-4/3 overflow-hidden rounded-2xl bg-linear-to-b from-sky-300 to-lime-200'
+    >
+      <div
+        class='absolute top-[34%] right-[4%] w-[44%] h-[14%] rounded-[50%] bg-green-700/40'
+      >
+      </div>
+      <div
+        class='absolute bottom-[4%] left-[4%] w-[44%] h-[14%] rounded-[50%] bg-green-700/40'
+      >
+      </div>
+      <div class='absolute top-[4%] right-[6%] w-2/5 aspect-square'>
+        <Pokeball
+          class='absolute inset-[20%] hidden group-data-[state=idle]:block'
+        />
+        <img
+          id='battle-rival'
+          alt=''
+          class='size-full group-data-[state=idle]:opacity-0 motion-safe:group-data-[state=appear]:animate-pokemon-pop motion-safe:group-data-[state=clash]:animate-battle-attack-rival group-data-[result=win]:opacity-0 motion-safe:group-data-[result=win]:animate-battle-faint motion-safe:group-data-[result=lose]:animate-battle-cheer'
+        />
+      </div>
+      <div class='absolute bottom-[6%] left-[6%] w-2/5 aspect-square'>
+        <img
+          id='battle-player'
+          alt=''
+          class='size-full group-data-[state=idle]:opacity-0 motion-safe:group-data-[state=appear]:animate-pokemon-pop motion-safe:group-data-[state=clash]:animate-battle-attack-player group-data-[result=lose]:opacity-0 motion-safe:group-data-[result=lose]:animate-battle-faint motion-safe:group-data-[result=win]:animate-battle-cheer'
+        />
+      </div>
+      {/* El choque, en medio de los dos */}
+      <span
+        class='absolute top-1/2 left-1/2 size-1/4 -translate-1/2 rounded-full bg-yellow-200 opacity-0 motion-safe:group-data-[state=clash]:animate-ball-flash'
+      ></span>
+    </div>
+
+    {/* Con su altura reservada, para que los botones no se muevan al salir */}
+    <p
+      id='battle-result'
+      class='min-h-9 text-center text-3xl font-black'
+    >
+    </p>
+
+    {/* Los de Ibai: tocar uno empieza el combate */}
+    <div class='grid grid-cols-3 gap-4'>
+      {
+        BATTLE_ELEMENTS.map(({ key, name, starter, icon, tile }) => (
+          <button
+            aria-label={name}
+            data-element={key}
+            class:list={[
+              'relative grid place-items-center aspect-square p-3 rounded-2xl bg-linear-to-b transition-transform active:scale-95',
+              tile
+            ]}
+          >
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${starter}.svg`}
+              alt=''
+              width='72'
+              height='72'
+              class='aspect-square w-full object-contain'
+            />
+            <Icon
+              name={icon}
+              class='absolute top-1 right-1 size-6 text-white'
+            />
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <audio
+    id='battle-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import { BATTLE_ELEMENTS } from 'consts/battle-elements'
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { pickOther } from 'scripts/random'
+    import { playSound, speak } from 'scripts/sounds'
+
+    type Element = (typeof BATTLE_ELEMENTS)[number]
+    type State = 'idle' | 'appear' | 'clash' | 'result'
+    type Result = 'win' | 'lose' | 'tie'
+
+    const RESULT_TEXTS: Record<Result, string> = {
+      win: '¡Has ganado!',
+      lose: '¡Gana el rival!',
+      tie: '¡Empate!'
+    }
+
+    const getResult = (player: Element, rival: Element): Result => {
+      if (player.beats === rival.key) return 'win'
+      if (rival.beats === player.key) return 'lose'
+      return 'tie'
+    }
+
+    const handleBattle = () => {
+      const battle = document.getElementById('battle') as HTMLDivElement
+
+      if (!battle) return
+
+      const playerImage = document.getElementById('battle-player') as HTMLImageElement
+      const rivalImage = document.getElementById('battle-rival') as HTMLImageElement
+      const resultText = document.getElementById('battle-result') as HTMLParagraphElement
+      const cry = document.getElementById('battle-cry') as HTMLAudioElement
+      const buttons = battle.querySelectorAll<HTMLButtonElement>('[data-element]')
+
+      const pokemons: Record<string, GamePokemon[]> = JSON.parse(
+        battle.dataset.pokemons ?? '{}'
+      )
+      let rival: GamePokemon | undefined
+      // Cada combate es otra ronda: lo que quedara del anterior se descarta
+      let round = 0
+
+      const setState = (state: State) => {
+        battle.dataset.state = state
+      }
+
+      // Acaban también si se cancelan (al elegir otro a mitad), y sin
+      // animaciones (movimiento reducido) no hay nada que esperar
+      const animationsEnd = () =>
+        Promise.allSettled(
+          battle.getAnimations({ subtree: true }).map(({ finished }) => finished)
+        )
+
+      const show = (image: HTMLImageElement, pokemon: GamePokemon) => {
+        image.src = pokemon.image
+        image.alt = `Imagen de ${pokemon.name}`
+      }
+
+      const fight = async (playerElement: Element) => {
+        const thisRound = ++round
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        // El rival elige a la vez, al azar: puede ganar, perder o empatar
+        const rivalElement = pickOther(BATTLE_ELEMENTS)
+        const player = pokemons[playerElement.key].find(
+          ({ id }) => id === playerElement.starter
+        ) as GamePokemon
+        rival = pickOther(pokemons[rivalElement.key], rival)
+        const opponent = rival
+
+        // Vuelta a empezar: los dos se ocultan (el rival, en su Pokéball)
+        // mientras cargan sus imágenes
+        delete battle.dataset.result
+        setState('idle')
+        resultText.textContent = ''
+        show(playerImage, player)
+        show(rivalImage, opponent)
+        await Promise.all([
+          playerImage.decode().catch(() => {}),
+          rivalImage.decode().catch(() => {})
+        ])
+        if (thisRound !== round) return
+
+        setState('appear')
+        speak(`¡${player.spokenName} contra ${opponent.spokenName}!`)
+        await animationsEnd()
+        if (thisRound !== round) return
+
+        setState('clash')
+        await animationsEnd()
+        if (thisRound !== round) return
+
+        const result = getResult(playerElement, rivalElement)
+        battle.dataset.result = result
+        setState('result')
+        resultText.textContent = RESULT_TEXTS[result]
+
+        if (result === 'tie') {
+          speak(`¡Empate! Los dos son de ${playerElement.name.toLowerCase()}`)
+          return
+        }
+
+        // Grita el que gana y la voz explica por qué
+        const [winner, winnerElement] =
+          result === 'win' ? [player, playerElement] : [opponent, rivalElement]
+        const outcome =
+          result === 'win' ? '¡Has ganado!' : `¡Gana ${winner.spokenName}!`
+        cry.src = winner.cry
+        cry.onended = () => speak(`${winnerElement.phrase} ${outcome}`)
+        playSound(cry)
+      }
+
+      buttons.forEach((button) => {
+        const element = BATTLE_ELEMENTS.find(
+          ({ key }) => key === button.dataset.element
+        )
+        if (element) button.addEventListener('click', () => fight(element))
+      })
+    }
+
+    document.addEventListener('astro:page-load', handleBattle)
+  </script>
+</MainLayout>
