@@ -1,0 +1,184 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getWeighedPokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = '¿Cuál pesa más?'
+
+const pokemons = await getWeighedPokemons()
+
+const pokemonClass =
+  'absolute bottom-full w-2/5 transition-transform active:scale-95'
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <a
+      href='/juegos/'
+      aria-label='Volver a los juegos'
+      class='btn'
+    >
+      <Icon
+        name='arrow-left'
+        size={40}
+      />
+    </a>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+    <button
+      aria-label={`Decir ${PAGE_TITLE}`}
+      class='btn'
+      data-speak={PAGE_TITLE}
+    >
+      <Icon
+        name='speaker'
+        size={28}
+      />
+    </button>
+  </PageHeader>
+
+  {/* data-heavier (left o right) inclina el balancín hacia el que pesa más */}
+  <div
+    id='scale'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    {/* Escena cuadrada: suelo en el sexto de abajo, el apoyo (triángulo de
+        alto el 20 % del ancho) encima y la tabla sobre su punta, girando
+        en ella (origin-bottom) */}
+    <div
+      class='relative aspect-square overflow-hidden rounded-2xl bg-linear-to-b from-sky-400 to-sky-100'
+    >
+      <div class='absolute inset-x-0 bottom-0 h-1/6 bg-green-600'></div>
+      <div
+        class='absolute bottom-1/6 left-1/2 w-1/5 aspect-square -translate-x-1/2 bg-amber-900 [clip-path:polygon(50%_0,100%_100%,0_100%)]'
+      >
+      </div>
+      {/* rotate positivo baja el extremo derecho. El rebote del final lo da
+          la curva, que se pasa un poco y vuelve */}
+      <div
+        class='absolute bottom-[calc(100%/6+20%)] inset-x-[5%] h-3 origin-bottom rounded-full bg-amber-800 motion-safe:transition-[rotate] motion-safe:duration-1000 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)] group-data-[heavier=left]:-rotate-12 group-data-[heavier=right]:rotate-12'
+      >
+        <button
+          id='scale-left'
+          class:list={[pokemonClass, 'left-0']}
+        >
+          <img
+            alt=''
+            class='aspect-square w-full'
+          />
+        </button>
+        <button
+          id='scale-right'
+          class:list={[pokemonClass, 'right-0']}
+        >
+          <img
+            alt=''
+            class='aspect-square w-full'
+          />
+        </button>
+      </div>
+    </div>
+
+    <button
+      id='scale-next'
+      aria-label='Otro'
+      class='btn-big bg-orange-700 hover:bg-orange-800'
+    >
+      <Icon
+        name='arrow-right'
+        size={40}
+      />
+    </button>
+  </div>
+  <audio
+    id='scale-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { WeighedPokemon } from 'interfaces/game-pokemon'
+    import { pickOther } from 'scripts/random'
+    import { playSound, speak } from 'scripts/sounds'
+
+    type Side = 'left' | 'right'
+
+    // Para que se note: el que pesa más pesa al menos el doble
+    const isClearlyDifferent = (a: WeighedPokemon, b: WeighedPokemon) =>
+      Math.max(a.weight, b.weight) >= 2 * Math.min(a.weight, b.weight)
+
+    // Redondeado, que es como lo entiende un niño
+    const sayWeight = ({ weight }: WeighedPokemon) => {
+      const kilos = Math.round(weight)
+      if (weight < 1) return 'menos de un kilo'
+      return kilos === 1 ? 'un kilo' : `${kilos} kilos`
+    }
+
+    const handleScale = () => {
+      const scale = document.getElementById('scale') as HTMLDivElement
+
+      if (!scale) return
+
+      const buttons: Record<Side, HTMLButtonElement> = {
+        left: document.getElementById('scale-left') as HTMLButtonElement,
+        right: document.getElementById('scale-right') as HTMLButtonElement
+      }
+      const cry = document.getElementById('scale-cry') as HTMLAudioElement
+      const btnNext = document.getElementById('scale-next') as HTMLButtonElement
+
+      const pokemons: WeighedPokemon[] = JSON.parse(scale.dataset.pokemons ?? '[]')
+      let pair: Record<Side, WeighedPokemon> | undefined
+
+      const show = (side: Side, pokemon: WeighedPokemon) => {
+        const image = buttons[side].querySelector('img') as HTMLImageElement
+        image.src = pokemon.image
+        image.alt = `Imagen de ${pokemon.name}`
+        buttons[side].setAttribute('aria-label', pokemon.name)
+      }
+
+      const showPair = () => {
+        delete scale.dataset.heavier
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        const first = pickOther(pokemons, pair?.left)
+        const second = pickOther(
+          pokemons.filter((other) => isClearlyDifferent(first, other))
+        )
+        pair =
+          Math.random() < 0.5
+            ? { left: first, right: second }
+            : { left: second, right: first }
+
+        show('left', pair.left)
+        show('right', pair.right)
+      }
+
+      const choose = (side: Side) => {
+        // Una vez inclinado, hasta «Otro» no se vuelve a elegir
+        if (!pair || scale.dataset.heavier) return
+
+        const heavier: Side = pair.left.weight > pair.right.weight ? 'left' : 'right'
+        const heavy = pair[heavier]
+
+        scale.dataset.heavier = heavier
+        cry.src = heavy.cry
+        cry.onended = () =>
+          speak(
+            side === heavier
+              ? `¡Muy bien! ${heavy.spokenName} pesa ${sayWeight(heavy)}`
+              : `¡Uy! Pesa más ${heavy.spokenName}: ${sayWeight(heavy)}`
+          )
+        playSound(cry)
+      }
+
+      buttons.left.addEventListener('click', () => choose('left'))
+      buttons.right.addEventListener('click', () => choose('right'))
+      btnNext.addEventListener('click', showPair)
+      showPair()
+    }
+
+    document.addEventListener('astro:page-load', handleScale)
+  </script>
+</MainLayout>

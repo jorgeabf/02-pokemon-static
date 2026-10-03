@@ -3,6 +3,7 @@ import type { Evolution } from 'interfaces/evolution'
 import type {
   EvolvingPokemon,
   GamePokemon,
+  WeighedPokemon,
   WildPokemon
 } from 'interfaces/game-pokemon'
 import {
@@ -10,6 +11,7 @@ import {
   getEvolutionChains,
   getHabitats,
   getSpanishNames,
+  getWeights,
   toSpokenName
 } from 'services/pokemon-species'
 
@@ -65,5 +67,17 @@ export const getWildPokemons = async (): Promise<WildPokemon[]> => {
     id,
     captureRate: captureRates[name],
     tile: POKEMON_HABITATS.find(({ key }) => key === habitats[name])?.tile ?? ''
+  }))
+}
+
+// Los 151 con su peso, para ¿Cuál pesa más?
+export const getWeighedPokemons = async (): Promise<WeighedPokemon[]> => {
+  const pokemons = await getPokemonList()
+  const spanishNames = await getSpanishNames()
+  const weights = await getWeights()
+
+  return pokemons.map(({ name, id }) => ({
+    ...toGamePokemon(id, spanishNames[name] ?? name),
+    weight: weights[name]
   }))
 }
