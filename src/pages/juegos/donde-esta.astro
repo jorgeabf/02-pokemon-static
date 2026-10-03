@@ -1,0 +1,180 @@
+---
+import { Icon } from 'astro-icon/components'
+import GameHeader from '@components/games/GameHeader.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getGamePokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = '¿Dónde está…?'
+
+const pokemons = await getGamePokemons()
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <GameHeader title={PAGE_TITLE} />
+
+  {/* data-state: asking (preguntando) o found (encontrado). La casilla buena
+      lleva data-target y la que se toca sin serlo, data-wrong mientras niega */}
+  <div
+    id='find'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-state='asking'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    {/* Tres casillas en triángulo: la primera centrada arriba */}
+    <div class='grid grid-cols-4 gap-4'>
+      {
+        [0, 1, 2].map((index) => (
+          <button
+            data-option
+            class:list={[
+              'col-span-2 grid place-items-center aspect-square p-3 rounded-2xl bg-radial from-white to-sky-300 transition-[opacity,scale] active:scale-95 motion-safe:data-wrong:animate-pokemon-no group-data-[state=found]:not-data-target:opacity-30 motion-safe:group-data-[state=found]:data-target:animate-battle-cheer',
+              index === 0 && 'col-start-2'
+            ]}
+          >
+            <img
+              alt=''
+              class='aspect-square w-full'
+            />
+          </button>
+        ))
+      }
+    </div>
+
+    <div class='grid grid-cols-2 gap-4'>
+      <button
+        id='find-ask'
+        aria-label='Repetir la pregunta'
+        class='btn-big bg-sky-600 hover:bg-sky-700'
+      >
+        <Icon
+          name='voice'
+          size={40}
+        />
+      </button>
+      <button
+        id='find-next'
+        aria-label='Otro'
+        class='btn-big bg-orange-700 hover:bg-orange-800'
+      >
+        <Icon
+          name='arrow-right'
+          size={40}
+        />
+      </button>
+    </div>
+  </div>
+  <audio
+    id='find-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
+    import { pickOther, pickSome, shuffle } from 'scripts/random'
+    import { canSpeak, playSound, speak } from 'scripts/sounds'
+
+    type State = 'asking' | 'found'
+
+    const handleFind = () => {
+      const find = document.getElementById('find') as HTMLDivElement
+
+      if (!find) return
+
+      const options = [...find.querySelectorAll<HTMLButtonElement>('[data-option]')]
+      const cry = document.getElementById('find-cry') as HTMLAudioElement
+      const btnAsk = document.getElementById('find-ask') as HTMLButtonElement
+      const btnNext = document.getElementById('find-next') as HTMLButtonElement
+
+      const pokemons: GamePokemon[] = JSON.parse(find.dataset.pokemons ?? '[]')
+      let target: GamePokemon | undefined
+      let shown: GamePokemon[] = []
+      // Cada pregunta es otra ronda: lo que quedara de la anterior se descarta
+      let round = 0
+
+      const getState = () => find.dataset.state as State
+      const setState = (state: State) => {
+        find.dataset.state = state
+      }
+
+      const ask = () => {
+        if (target) speak(`¿Dónde está ${target.spokenName}?`)
+      }
+
+      const sayFound = ({ spokenName }: GamePokemon) => {
+        speechSynthesis.cancel()
+        cry.onended = () => speak(`¡Muy bien! ¡Es ${spokenName}!`)
+        playSound(cry)
+      }
+
+      // El que se pide y otros dos, en un orden cualquiera
+      const showPokemons = () => {
+        round++
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        const current = pickOther(pokemons, target)
+        target = current
+        shown = shuffle([
+          current,
+          ...pickSome(
+            pokemons.filter((pokemon) => pokemon !== current),
+            options.length - 1
+          )
+        ])
+
+        options.forEach((option, index) => {
+          const { name, image } = shown[index]
+          const img = option.querySelector('img') as HTMLImageElement
+          img.src = image
+          img.alt = `Imagen de ${name}`
+          option.setAttribute('aria-label', name)
+          option.toggleAttribute('data-target', shown[index] === current)
+          delete option.dataset.wrong
+        })
+        cry.src = current.cry
+        setState('asking')
+      }
+
+      const choose = async (option: HTMLButtonElement, pokemon: GamePokemon) => {
+        if (!target) return
+
+        // Ya encontrado: tocarlo otra vez lo vuelve a decir
+        if (getState() === 'found') {
+          if (pokemon === target) sayFound(target)
+          return
+        }
+
+        if (pokemon === target) {
+          setState('found')
+          sayFound(target)
+          return
+        }
+
+        // Ese no es: niega, dice quién es y vuelve a preguntar. No se pierde
+        if ('wrong' in option.dataset) return
+
+        const thisRound = round
+        option.dataset.wrong = ''
+        speak(`Ese es ${pokemon.spokenName}. ¿Dónde está ${target.spokenName}?`)
+        await animationsEnd(option)
+        if (thisRound !== round) return
+
+        delete option.dataset.wrong
+      }
+
+      options.forEach((option, index) =>
+        option.addEventListener('click', () => choose(option, shown[index]))
+      )
+      btnAsk.addEventListener('click', ask)
+      btnNext.addEventListener('click', () => {
+        showPokemons()
+        ask()
+      })
+      showPokemons()
+      if (canSpeak()) ask()
+    }
+
+    document.addEventListener('astro:page-load', handleFind)
+  </script>
+</MainLayout>

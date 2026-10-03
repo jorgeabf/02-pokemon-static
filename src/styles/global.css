@@ -27,6 +27,9 @@
   --animate-battle-attack-rival: battle-attack-rival 0.6s ease-in-out;
   --animate-battle-faint: battle-faint 0.6s ease-in;
   --animate-battle-cheer: battle-cheer 0.5s ease-out 2;
+  /* ¿Dónde está…?: el que no es niega con la cabeza (el que es salta con
+     battle-cheer) */
+  --animate-pokemon-no: pokemon-no 0.5s ease-in-out;
 
   /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos */
   @keyframes ball-shake {
@@ -178,6 +181,21 @@
     }
     50% {
       translate: 0 -15%;
+    }
+  }
+
+  @keyframes pokemon-no {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    20%,
+    60% {
+      rotate: -12deg;
+    }
+    40%,
+    80% {
+      rotate: 12deg;
     }
   }
 
