@@ -31,21 +31,13 @@ const habitatTiles = POKEMON_HABITATS.filter(({ key }) =>
       />
     </NavLink>
     <NavLink
-      href='/adivina/'
-      label='Adivina'
+      href='/juegos/'
+      label='Juegos'
     >
-      {/* Mini pantalla del juego: silueta sobre su mismo fondo */}
-      <span
-        class='grid place-items-center size-12 rounded-lg bg-radial from-yellow-200 to-sky-500'
-      >
-        <img
-          src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg'
-          alt=''
-          width='40'
-          height='40'
-          class='size-10 brightness-0'
-        />
-      </span>
+      <Icon
+        name='game-controller'
+        class='size-12 text-violet-500'
+      />
     </NavLink>
     <NavLink
       href='/donde-viven/'
@@ -68,22 +60,6 @@ const habitatTiles = POKEMON_HABITATS.filter(({ key }) =>
             </span>
           ))
         }
-      </span>
-    </NavLink>
-    <NavLink
-      href='/sorpresa/'
-      label='Sorpresa'
-    >
-      {/* La Pokéball de inicio, pero abriéndose y con un destello */}
-      <span class='relative block size-12'>
-        <Pokeball
-          class='absolute bottom-0 left-0 size-10'
-          topClass='-rotate-30'
-        />
-        <Icon
-          name='sparkle'
-          class='absolute top-0 right-0 size-6 text-yellow-400'
-        />
       </span>
     </NavLink>
   </ul>

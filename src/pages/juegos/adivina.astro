@@ -12,7 +12,27 @@ const pokemons = await getGamePokemons()
 
 <MainLayout title={PAGE_TITLE}>
   <PageHeader>
+    <a
+      href='/juegos/'
+      aria-label='Volver a los juegos'
+      class='btn'
+    >
+      <Icon
+        name='arrow-left'
+        size={40}
+      />
+    </a>
     <PageTitle>{PAGE_TITLE}</PageTitle>
+    <button
+      aria-label={`Decir ${PAGE_TITLE}`}
+      class='btn'
+      data-speak={PAGE_TITLE}
+    >
+      <Icon
+        name='speaker'
+        size={28}
+      />
+    </button>
   </PageHeader>
 
   <div
