@@ -107,10 +107,16 @@ const getNames = ({ name, evolvesTo }: Evolution): string[] => [
   ...evolvesTo.flatMap(getNames)
 ]
 
+// Cada cadena desde su primer Pokémon (también las de uno solo)
+export const getEvolutionChains = async (): Promise<Evolution[]> => {
+  const chains = await getAllEvolutionChains()
+
+  return chains.flatMap(({ chain }) => keepFirstGeneration(chain))
+}
+
 // Cada Pokémon con su cadena entera, desde el primero de ella
 export const getEvolutions = async (): Promise<Record<string, Evolution>> => {
-  const chains = await getAllEvolutionChains()
-  const firsts = chains.flatMap(({ chain }) => keepFirstGeneration(chain))
+  const firsts = await getEvolutionChains()
 
   return Object.fromEntries(
     firsts.flatMap((first) => getNames(first).map((name) => [name, first]))
