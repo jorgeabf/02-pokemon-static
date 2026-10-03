@@ -70,6 +70,14 @@ export const getHabitats = async (): Promise<Record<string, string>> => {
   )
 }
 
+export const getCaptureRates = async (): Promise<Record<string, number>> => {
+  const species = await getAllSpecies()
+
+  return Object.fromEntries(
+    species.map(({ name, capture_rate }) => [name, capture_rate])
+  )
+}
+
 // Texto de la Pokédex en español; el más corto, que es el más fácil de
 // escuchar para un niño. Los textos traen saltos de línea de los juegos.
 export const getDescriptions = async (): Promise<Record<string, string>> => {
