@@ -199,5 +199,36 @@ const tileClass =
         </span>
       </a>
     </li>
+    <li>
+      <a
+        href='/juegos/parejas/'
+        aria-label='Parejas'
+        data-speak='Parejas'
+        class:list={[tileClass, 'bg-linear-to-b from-amber-200 to-amber-400']}
+      >
+        {/* Cuatro cartas: dos tapadas y la pareja de Pikachu */}
+        <span class='grid grid-cols-2 gap-1.5 aspect-square w-full'>
+          {
+            [false, true, true, false].map((up) =>
+              up ? (
+                <span class='grid place-items-center p-0.5 rounded-md bg-white'>
+                  <img
+                    src={drawings[25]}
+                    alt=''
+                    width='30'
+                    height='30'
+                    class='aspect-square w-full object-contain'
+                  />
+                </span>
+              ) : (
+                <span class='grid place-items-center rounded-md bg-radial from-indigo-400 to-indigo-700'>
+                  <Pokeball class='w-3/5' />
+                </span>
+              )
+            )
+          }
+        </span>
+      </a>
+    </li>
   </ul>
 </MainLayout>

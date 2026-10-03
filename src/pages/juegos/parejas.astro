@@ -1,0 +1,207 @@
+---
+import { Icon } from 'astro-icon/components'
+import GameHeader from '@components/games/GameHeader.astro'
+import Confetti from '@components/shared/Confetti.astro'
+import Pokeball from '@components/shared/Pokeball.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getGamePokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = 'Parejas'
+
+// 6 parejas: 12 cartas en 3 columnas, de 98 px a 375 (en 4 serían de 73)
+const CARDS = 12
+
+const pokemons = await getGamePokemons()
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <GameHeader title={PAGE_TITLE} />
+
+  {/* data-state del tablero: dealing (tapándolas para repartir), idle
+      (esperando), checking (girando la segunda), mismatch (no son pareja: se
+      tapan tras una pausa) o won, con data-celebrate (confeti). Cada carta
+      lleva data-up boca arriba y data-matched con su pareja encontrada */}
+  <div
+    id='pairs'
+    class='group relative grid gap-6 max-w-sm mx-auto'
+    data-state='dealing'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    <div class='grid grid-cols-3 gap-4'>
+      {
+        Array.from({ length: CARDS }, () => (
+          <button
+            data-card
+            aria-label='Carta'
+            class='group/card perspective-near aspect-square transition-transform active:scale-95'
+          >
+            {/* Lo que gira, con las dos caras espalda con espalda. Con opacity,
+                filter u overflow se aplanaría y se verían las dos a la vez:
+                el redondeo va en cada cara. Al no ser pareja, se tapan tras un
+                segundo; con movimiento reducido no giran, pero la pausa sigue */}
+            <span class='grid size-full transform-3d transition-transform duration-500 motion-reduce:duration-0 group-data-up/card:rotate-y-180 group-data-[state=mismatch]:delay-1000'>
+              <span class='col-start-1 row-start-1 grid place-items-center rounded-xl bg-radial from-indigo-400 to-indigo-700 backface-hidden'>
+                <Pokeball class='w-3/5' />
+              </span>
+              <span class='col-start-1 row-start-1 grid place-items-center p-2 rounded-xl bg-radial from-white to-sky-200 rotate-y-180 backface-hidden'>
+                <img
+                  alt=''
+                  class='aspect-square w-full motion-safe:group-data-matched/card:animate-battle-cheer'
+                />
+              </span>
+            </span>
+          </button>
+        ))
+      }
+    </div>
+
+    <button
+      id='pairs-next'
+      aria-label='Otra partida'
+      class='btn-big bg-orange-700 hover:bg-orange-800'
+    >
+      <Icon
+        name='arrow-right'
+        size={40}
+      />
+    </button>
+
+    <Confetti />
+  </div>
+  <audio
+    id='pairs-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
+    import { pickSome, shuffle } from 'scripts/random'
+    import { playSound, speak } from 'scripts/sounds'
+
+    type State = 'dealing' | 'idle' | 'checking' | 'mismatch' | 'won'
+
+    const handlePairs = () => {
+      const board = document.getElementById('pairs') as HTMLDivElement
+
+      if (!board) return
+
+      const cards = [...board.querySelectorAll<HTMLButtonElement>('[data-card]')]
+      const images = cards.map((card) => card.querySelector('img') as HTMLImageElement)
+      const cry = document.getElementById('pairs-cry') as HTMLAudioElement
+      const btnNext = document.getElementById('pairs-next') as HTMLButtonElement
+
+      const pokemons: GamePokemon[] = JSON.parse(board.dataset.pokemons ?? '[]')
+      // El Pokémon de cada carta
+      let deck: GamePokemon[] = []
+      // La carta boca arriba que espera a su pareja
+      let first: number | undefined
+      // Cada partida es otra ronda: lo que quedara de la anterior se descarta
+      let round = 0
+
+      const getState = () => board.dataset.state as State
+      const setState = (state: State) => {
+        board.dataset.state = state
+      }
+
+      const turnDown = (card: HTMLButtonElement) => {
+        delete card.dataset.up
+        card.setAttribute('aria-label', 'Carta')
+      }
+
+      const sayAfterCry = (pokemon: GamePokemon, text: string) => {
+        cry.src = pokemon.cry
+        cry.onended = () => speak(text)
+        playSound(cry)
+      }
+
+      const deal = async () => {
+        const thisRound = ++round
+        first = undefined
+        cry.onended = null
+        speechSynthesis.cancel()
+        delete board.dataset.celebrate
+
+        // Primero se tapan todas y, ya tapadas, se cambian los Pokémon: si
+        // no, se verían los nuevos mientras giran
+        setState('dealing')
+        cards.forEach((card) => {
+          turnDown(card)
+          delete card.dataset.matched
+        })
+        await animationsEnd(board)
+        if (thisRound !== round) return
+
+        const chosen = pickSome(pokemons, cards.length / 2)
+        deck = shuffle([...chosen, ...chosen])
+        images.forEach((image, index) => {
+          image.src = deck[index].image
+          image.alt = `Imagen de ${deck[index].name}`
+        })
+        // Hasta que estén cargadas no se juega: si no, alguna carta se
+        // volvería en blanco
+        await Promise.all(images.map((image) => image.decode().catch(() => {})))
+        if (thisRound !== round) return
+
+        setState('idle')
+      }
+
+      const turnUp = async (index: number) => {
+        const card = cards[index]
+
+        if (getState() !== 'idle' || 'up' in card.dataset) return
+
+        const pokemon = deck[index]
+        card.dataset.up = ''
+        card.setAttribute('aria-label', pokemon.name)
+
+        if (first === undefined) {
+          first = index
+          return
+        }
+
+        const other = cards[first]
+        const isPair = deck[first] === pokemon
+        const thisRound = round
+        first = undefined
+
+        setState('checking')
+        await animationsEnd(board)
+        if (thisRound !== round) return
+
+        if (isPair) {
+          card.dataset.matched = ''
+          other.dataset.matched = ''
+
+          if (cards.every(({ dataset }) => 'matched' in dataset)) {
+            setState('won')
+            board.dataset.celebrate = ''
+            sayAfterCry(pokemon, `¡${pokemon.spokenName}! ¡Las has encontrado todas!`)
+            return
+          }
+
+          setState('idle')
+          sayAfterCry(pokemon, `¡${pokemon.spokenName}!`)
+          return
+        }
+
+        // No son pareja: se tapan tras una pausa para que dé tiempo a verlas
+        setState('mismatch')
+        turnDown(card)
+        turnDown(other)
+        await animationsEnd(board)
+        if (thisRound !== round) return
+
+        setState('idle')
+      }
+
+      cards.forEach((card, index) =>
+        card.addEventListener('click', () => turnUp(index))
+      )
+      btnNext.addEventListener('click', deal)
+      deal()
+    }
+
+    document.addEventListener('astro:page-load', handlePairs)
+  </script>
+</MainLayout>
