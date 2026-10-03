@@ -1,6 +1,8 @@
+// Si otro grito lo sustituye antes de empezar a sonar, play() falla
+// (AbortError): no es un error, el que vale es el nuevo
 export const playSound = (audio: HTMLAudioElement) => {
   audio.currentTime = 0
-  audio.play()
+  audio.play().catch(() => {})
 }
 
 export const speak = (text: string) => {
