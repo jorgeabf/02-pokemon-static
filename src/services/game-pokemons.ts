@@ -1,5 +1,10 @@
-import type { GamePokemon } from 'interfaces/game-pokemon'
-import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+import type { Evolution } from 'interfaces/evolution'
+import type { EvolvingPokemon, GamePokemon } from 'interfaces/game-pokemon'
+import {
+  getEvolutionChains,
+  getSpanishNames,
+  toSpokenName
+} from 'services/pokemon-species'
 
 // Los 151 con lo que usan los juegos: nombre, voz, imagen y grito
 export const getGamePokemons = async (): Promise<GamePokemon[]> => {
@@ -18,4 +23,18 @@ export const getGamePokemons = async (): Promise<GamePokemon[]> => {
       cry: `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
     }
   })
+}
+
+// Las cadenas que tienen alguna evolución, desde su primera fase
+export const getEvolvingPokemons = async (): Promise<EvolvingPokemon[]> => {
+  const pokemons = await getGamePokemons()
+  const chains = await getEvolutionChains()
+
+  // getGamePokemons() va por orden de número: el #1 está en la posición 0
+  const toEvolving = ({ id, evolvesTo }: Evolution): EvolvingPokemon => ({
+    ...pokemons[id - 1],
+    evolvesTo: evolvesTo.map(toEvolving)
+  })
+
+  return chains.filter(({ evolvesTo }) => evolvesTo.length > 0).map(toEvolving)
 }

@@ -1,0 +1,208 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getEvolvingPokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = '¡Evoluciona!'
+
+const pokemons = await getEvolvingPokemons()
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <a
+      href='/juegos/'
+      aria-label='Volver a los juegos'
+      class='btn'
+    >
+      <Icon
+        name='arrow-left'
+        size={40}
+      />
+    </a>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+    <button
+      aria-label={`Decir ${PAGE_TITLE}`}
+      class='btn'
+      data-speak={PAGE_TITLE}
+    >
+      <Icon
+        name='speaker'
+        size={28}
+      />
+    </button>
+  </PageHeader>
+
+  {/* --taps (de 0 a 3) hace crecer el brillo; data-evolving mientras parpadean
+      las dos fases y data-evolved al salir la nueva: cada paso lo anima el CSS */}
+  <div
+    id='evolve'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    <button
+      id='evolve-pokemon'
+      aria-label='Evolucionar'
+      class='isolate grid place-items-center aspect-square p-8 overflow-hidden rounded-2xl bg-radial from-sky-200 to-indigo-700 transition-transform active:scale-95'
+    >
+      {/* El brillo crea su propio contexto de apilamiento (opacity, blur) y se
+          pintaría encima del Pokémon: -z-10 lo deja detrás, sobre el fondo del
+          botón gracias a isolate */}
+      <span
+        class='-z-10 col-start-1 row-start-1 size-full rounded-full bg-yellow-200 blur-2xl opacity-[calc(var(--taps,0)/3)] scale-[calc(0.5+var(--taps,0)/6)] transition-[opacity,scale] duration-300'
+      ></span>
+      {/* En blanco mientras parpadean; debajo de la animación ya está como
+          acaba (la actual oculta, la siguiente a la vista) */}
+      <img
+        id='evolve-from'
+        alt=''
+        class='col-start-1 row-start-1 aspect-square w-full group-data-evolving:opacity-0 group-data-evolving:brightness-0 group-data-evolving:invert motion-safe:group-data-evolving:animate-evolve-out motion-safe:group-data-evolved:animate-pokemon-pop'
+      />
+      <img
+        id='evolve-to'
+        alt=''
+        class='col-start-1 row-start-1 aspect-square w-full opacity-0 brightness-0 invert group-data-evolving:opacity-100 motion-safe:group-data-evolving:animate-evolve-in'
+      />
+      <span
+        class='col-start-1 row-start-1 size-3/4 rounded-full bg-white opacity-0 motion-safe:group-data-evolved:animate-ball-flash'
+      ></span>
+    </button>
+
+    <p
+      id='evolve-name'
+      class='text-center text-3xl font-black'
+    >
+    </p>
+
+    <button
+      id='evolve-next'
+      aria-label='Otro'
+      class='btn-big bg-orange-700 hover:bg-orange-800'
+    >
+      <Icon
+        name='arrow-right'
+        size={40}
+      />
+    </button>
+  </div>
+  <audio
+    id='evolve-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { EvolvingPokemon } from 'interfaces/game-pokemon'
+    import { pickOther } from 'scripts/random'
+    import { playSound, speak } from 'scripts/sounds'
+
+    // Toques para cargar la energía y evolucionar
+    const TAPS_TO_EVOLVE = 3
+
+    const handleEvolve = () => {
+      const evolve = document.getElementById('evolve') as HTMLDivElement
+
+      if (!evolve) return
+
+      const from = document.getElementById('evolve-from') as HTMLImageElement
+      const to = document.getElementById('evolve-to') as HTMLImageElement
+      const name = document.getElementById('evolve-name') as HTMLParagraphElement
+      const cry = document.getElementById('evolve-cry') as HTMLAudioElement
+      const btnPokemon = document.getElementById('evolve-pokemon') as HTMLButtonElement
+      const btnNext = document.getElementById('evolve-next') as HTMLButtonElement
+
+      const pokemons: EvolvingPokemon[] = JSON.parse(evolve.dataset.pokemons ?? '[]')
+      let first: EvolvingPokemon | undefined
+      let current: EvolvingPokemon | undefined
+      let taps = 0
+      let evolving = false
+      // Cada Pokémon nuevo es otra ronda: lo que quedara de la anterior se descarta
+      let round = 0
+
+      // Acaban también si se cancelan (al pulsar «Otro»), y sin animaciones
+      // (movimiento reducido) no hay nada que esperar
+      const animationsEnd = () =>
+        Promise.allSettled(
+          evolve.getAnimations({ subtree: true }).map(({ finished }) => finished)
+        )
+
+      const setTaps = (value: number) => {
+        taps = value
+        evolve.style.setProperty('--taps', String(taps))
+      }
+
+      const show = (pokemon: EvolvingPokemon) => {
+        current = pokemon
+        from.src = pokemon.image
+        from.alt = `Imagen de ${pokemon.name}`
+        name.textContent = pokemon.name
+        cry.src = pokemon.cry
+      }
+
+      const sayAfterCry = (text: string) => {
+        cry.onended = () => speak(text)
+        playSound(cry)
+      }
+
+      const preparePokemon = () => {
+        round++
+        evolving = false
+        first = pickOther(pokemons, first)
+
+        delete evolve.dataset.evolving
+        delete evolve.dataset.evolved
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        setTaps(0)
+        show(first)
+      }
+
+      const evolveTo = async (previous: EvolvingPokemon, next: EvolvingPokemon) => {
+        const thisRound = round
+        evolving = true
+
+        // La siguiente fase se carga antes de empezar a parpadear
+        to.src = next.image
+        await to.decode().catch(() => {})
+        if (thisRound !== round) return
+
+        evolve.dataset.evolving = ''
+        await animationsEnd()
+        if (thisRound !== round) return
+
+        show(next)
+        await from.decode().catch(() => {})
+        if (thisRound !== round) return
+
+        delete evolve.dataset.evolving
+        evolve.dataset.evolved = ''
+        setTaps(0)
+        await animationsEnd()
+        if (thisRound !== round) return
+
+        delete evolve.dataset.evolved
+        evolving = false
+        sayAfterCry(`¡${previous.spokenName} ha evolucionado en ${next.spokenName}!`)
+      }
+
+      const tapPokemon = () => {
+        if (!current || evolving) return
+
+        // En la última fase ya no evoluciona: dice quién es
+        if (current.evolvesTo.length === 0) return sayAfterCry(current.spokenName)
+
+        setTaps(taps + 1)
+        // Si hay varias (Eevee), una al azar
+        if (taps === TAPS_TO_EVOLVE) evolveTo(current, pickOther(current.evolvesTo))
+      }
+
+      btnPokemon.addEventListener('click', tapPokemon)
+      btnNext.addEventListener('click', preparePokemon)
+      preparePokemon()
+    }
+
+    document.addEventListener('astro:page-load', handleEvolve)
+  </script>
+</MainLayout>
