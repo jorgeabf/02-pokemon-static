@@ -43,8 +43,8 @@ const getAllSpecies = cached(() =>
   )
 )
 
-// El peso solo está aquí. Cada respuesta pesa ~300 KB (trae todos los
-// movimientos): se queda solo lo que se usa
+// El peso y los tipos solo están aquí. Cada respuesta pesa ~300 KB (trae
+// todos los movimientos): se queda solo lo que se usa
 const getAllPokemon = cached(async () => {
   const pokemons = await fetchInBatches<PokemonResponse>(
     Array.from(
@@ -53,7 +53,11 @@ const getAllPokemon = cached(async () => {
     )
   )
 
-  return pokemons.map(({ name, weight }) => ({ name, weight }))
+  return pokemons.map(({ name, weight, types }) => ({
+    name,
+    weight,
+    types: types.map(({ type }) => type.name)
+  }))
 })
 
 // Varias especies comparten cadena: cada una se pide una vez
@@ -96,6 +100,13 @@ export const getWeights = async (): Promise<Record<string, number>> => {
   const pokemons = await getAllPokemon()
 
   return Object.fromEntries(pokemons.map(({ name, weight }) => [name, weight / 10]))
+}
+
+// Sus tipos en PokeAPI (fire, water…), uno o dos
+export const getTypes = async (): Promise<Record<string, string[]>> => {
+  const pokemons = await getAllPokemon()
+
+  return Object.fromEntries(pokemons.map(({ name, types }) => [name, types]))
 }
 
 // Texto de la Pokédex en español; el más corto, que es el más fácil de

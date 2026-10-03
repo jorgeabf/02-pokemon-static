@@ -133,5 +133,32 @@ const tileClass =
         </span>
       </a>
     </li>
+    <li>
+      <a
+        href='/juegos/combate/'
+        aria-label='Fuego, agua, planta'
+        data-speak='Fuego, agua, planta'
+        class:list={[tileClass, 'bg-linear-to-b from-sky-300 to-lime-200']}
+      >
+        {/* Los tres iniciales en triángulo, como piedra, papel o tijera */}
+        <span class='relative aspect-square w-full'>
+          {
+            [
+              { id: 4, position: 'top-0 left-1/4' },
+              { id: 7, position: 'bottom-0 left-0' },
+              { id: 1, position: 'bottom-0 right-0' }
+            ].map(({ id, position }) => (
+              <img
+                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${id}.svg`}
+                alt=''
+                width='54'
+                height='54'
+                class:list={['absolute aspect-square w-1/2 object-contain', position]}
+              />
+            ))
+          }
+        </span>
+      </a>
+    </li>
   </ul>
 </MainLayout>

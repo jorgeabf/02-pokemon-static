@@ -1,14 +1,14 @@
 export interface GamePokemon {
+  id: number
   name: string
   spokenName: string
   image: string
   cry: string
 }
 
-// Para el juego ¡Atrápalo!: su número (para el álbum), lo fácil que es de
-// atrapar y el degradado de su hábitat, que hace de fondo
+// Para el juego ¡Atrápalo!: lo fácil que es de atrapar y el degradado de su
+// hábitat, que hace de fondo
 export interface WildPokemon extends GamePokemon {
-  id: number
   captureRate: number
   tile: string
 }

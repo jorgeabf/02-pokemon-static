@@ -11,6 +11,7 @@ import {
   getEvolutionChains,
   getHabitats,
   getSpanishNames,
+  getTypes,
   getWeights,
   toSpokenName
 } from 'services/pokemon-species'
@@ -26,8 +27,9 @@ const getPokemonList = async () => {
   }))
 }
 
-// Lo que usan los juegos: nombre, voz, imagen y grito
+// Lo que usan los juegos: número, nombre, voz, imagen y grito
 const toGamePokemon = (id: number, spanishName: string): GamePokemon => ({
+  id,
   name: spanishName,
   spokenName: toSpokenName(spanishName),
   image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
@@ -64,7 +66,6 @@ export const getWildPokemons = async (): Promise<WildPokemon[]> => {
 
   return pokemons.map(({ name, id }) => ({
     ...toGamePokemon(id, spanishNames[name] ?? name),
-    id,
     captureRate: captureRates[name],
     tile: POKEMON_HABITATS.find(({ key }) => key === habitats[name])?.tile ?? ''
   }))
@@ -80,4 +81,22 @@ export const getWeighedPokemons = async (): Promise<WeighedPokemon[]> => {
     ...toGamePokemon(id, spanishNames[name] ?? name),
     weight: weights[name]
   }))
+}
+
+// Los de cada tipo (fire, water…), para Fuego, agua, planta
+export const getPokemonsByType = async (
+  types: string[]
+): Promise<Record<string, GamePokemon[]>> => {
+  const pokemons = await getPokemonList()
+  const spanishNames = await getSpanishNames()
+  const pokemonTypes = await getTypes()
+
+  return Object.fromEntries(
+    types.map((type) => [
+      type,
+      pokemons
+        .filter(({ name }) => pokemonTypes[name].includes(type))
+        .map(({ name, id }) => toGamePokemon(id, spanishNames[name] ?? name))
+    ])
+  )
 }

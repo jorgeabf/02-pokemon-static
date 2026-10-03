@@ -3,4 +3,11 @@ interface PokemonResponse {
   name: string
   // En hectogramos: 4600 son 460 kg
   weight: number
+  types: {
+    slot: number
+    type: {
+      name: string
+      url: string
+    }
+  }[]
 }
