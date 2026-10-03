@@ -7,7 +7,7 @@ interface Props {
 const { href, label } = Astro.props
 
 // La sección es el primer tramo de la ruta: /pokemons/2/ y /pokemons/pikachu
-// son de «Pokémons», /colores/amarillo/ es de «Colores»
+// son de «Pokémons», /donde-viven/bosque/ es de «Dónde viven»
 const getSection = (path: string) => path.split('/')[1]
 
 const currentPath = Astro.url.pathname

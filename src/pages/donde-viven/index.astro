@@ -1,0 +1,42 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageHeader from '@components/shared/PageHeader.astro'
+import PageTitle from '@components/shared/PageTitle.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
+
+const PAGE_TITLE = '¿Dónde viven?'
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <PageHeader>
+    <PageTitle>{PAGE_TITLE}</PageTitle>
+  </PageHeader>
+
+  <ul class='grid grid-cols-3 gap-4 max-w-md mx-auto'>
+    {
+      POKEMON_HABITATS.map(({ slug, name, icon, tile }) => (
+        <li>
+          <a
+            href={`/donde-viven/${slug}/`}
+            data-speak={name}
+            class='grid gap-2 text-center font-bold transition-transform active:scale-95'
+          >
+            <span
+              class:list={[
+                'grid place-items-center aspect-square rounded-2xl bg-linear-to-b text-white',
+                tile
+              ]}
+            >
+              <Icon
+                name={icon}
+                class='w-3/5 h-auto'
+              />
+            </span>
+            {name}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</MainLayout>

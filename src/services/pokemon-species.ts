@@ -62,10 +62,12 @@ export const getSpanishNames = async (): Promise<Record<string, string>> => {
   )
 }
 
-export const getColors = async (): Promise<Record<string, string>> => {
+export const getHabitats = async (): Promise<Record<string, string>> => {
   const species = await getAllSpecies()
 
-  return Object.fromEntries(species.map(({ name, color }) => [name, color.name]))
+  return Object.fromEntries(
+    species.map(({ name, habitat }) => [name, habitat?.name ?? ''])
+  )
 }
 
 // Texto de la Pokédex en español; el más corto, que es el más fácil de

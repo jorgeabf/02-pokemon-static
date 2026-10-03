@@ -5,31 +5,31 @@ import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
-import { POKEMON_COLORS } from 'consts/pokemon-colors'
-import { getColors } from 'services/pokemon-species'
+import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
+import { getHabitats } from 'services/pokemon-species'
 
 export const getStaticPaths = (async () => {
   const resp = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
   const { results } = (await resp.json()) as PokemonListResponse
-  const colors = await getColors()
+  const habitats = await getHabitats()
 
-  return POKEMON_COLORS.map((color) => ({
-    params: { color: color.slug },
+  return POKEMON_HABITATS.map((habitat) => ({
+    params: { habitat: habitat.slug },
     props: {
-      color,
-      pokemons: results.filter(({ name }) => colors[name] === color.key)
+      habitat,
+      pokemons: results.filter(({ name }) => habitats[name] === habitat.key)
     }
   }))
 }) satisfies GetStaticPaths
 
-const { color, pokemons } = Astro.props
+const { habitat, pokemons } = Astro.props
 ---
 
-<MainLayout title={color.name}>
+<MainLayout title={habitat.name}>
   <PageHeader>
     <a
-      href='/colores/'
-      aria-label='Volver a los colores'
+      href='/donde-viven/'
+      aria-label='Volver a los sitios'
       class='btn'
     >
       <Icon
@@ -40,16 +40,21 @@ const { color, pokemons } = Astro.props
     <PageTitle>
       <span
         class:list={[
-          'inline-block size-6 mr-2 align-middle rounded-full border-2 border-slate-600',
-          color.swatch
+          'inline-grid place-items-center size-8 mr-2 align-middle rounded-lg bg-linear-to-b text-white',
+          habitat.tile
         ]}
-      />
-      {color.name}
+      >
+        <Icon
+          name={habitat.icon}
+          size={24}
+        />
+      </span>
+      {habitat.name}
     </PageTitle>
     <button
-      aria-label={`Decir ${color.name}`}
+      aria-label={`Decir ${habitat.name}`}
       class='btn'
-      data-speak={color.name}
+      data-speak={habitat.name}
     >
       <Icon
         name='speaker'
@@ -59,7 +64,7 @@ const { color, pokemons } = Astro.props
   </PageHeader>
 
   <ul
-    aria-label={`Pokémon de color ${color.name.toLowerCase()}`}
+    aria-label={habitat.label}
     class='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'
   >
     {

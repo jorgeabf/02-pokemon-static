@@ -2,11 +2,11 @@
 import { Icon } from 'astro-icon/components'
 import NavLink from '@components/shared/NavLink.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
-import { POKEMON_COLORS } from 'consts/pokemon-colors'
+import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
 
 // Cada enlace es un dibujo de su página, para que Ibai lo reconozca sin leer
-const colorDots = POKEMON_COLORS.filter(({ key }) =>
-  ['red', 'blue', 'green', 'yellow'].includes(key)
+const habitatTiles = POKEMON_HABITATS.filter(({ key }) =>
+  ['forest', 'sea', 'mountain', 'urban'].includes(key)
 )
 ---
 
@@ -48,14 +48,24 @@ const colorDots = POKEMON_COLORS.filter(({ key }) =>
       </span>
     </NavLink>
     <NavLink
-      href='/colores/'
-      label='Colores'
+      href='/donde-viven/'
+      label='Dónde viven'
     >
-      {/* Como los círculos de la página de colores */}
+      {/* Como las casillas de la página de los sitios */}
       <span class='grid grid-cols-2 gap-1 size-12'>
         {
-          colorDots.map(({ swatch }) => (
-            <span class:list={['rounded-full', swatch]} />
+          habitatTiles.map(({ icon, tile }) => (
+            <span
+              class:list={[
+                'grid place-items-center rounded-md bg-linear-to-b text-white',
+                tile
+              ]}
+            >
+              <Icon
+                name={icon}
+                class='size-4'
+              />
+            </span>
           ))
         }
       </span>
