@@ -72,6 +72,7 @@ const pokemons = await getGamePokemons()
     import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
+    import { vibrateWithShake } from 'scripts/vibration'
 
     const handleSurprise = () => {
       const surprise = document.getElementById('surprise') as HTMLDivElement
@@ -121,6 +122,7 @@ const pokemons = await getGamePokemons()
         state = 'opening'
 
         surprise.dataset.shaking = ''
+        vibrateWithShake(surprise)
         // Mientras se mece da tiempo a que llegue la imagen
         await Promise.all([animationsEnd(surprise), image.decode().catch(() => {})])
         if (thisRound !== round) return

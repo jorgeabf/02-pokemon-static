@@ -36,7 +36,9 @@
   --animate-confetti-fall: confetti-fall 2s ease-in;
   --animate-confetti-flutter: confetti-flutter 0.5s linear 6;
 
-  /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos */
+  /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos. El
+     móvil vibra con cada una: si cambian los tiempos, cambiar también el
+     patrón de scripts/vibration.ts */
   @keyframes ball-shake {
     0%,
     16%,

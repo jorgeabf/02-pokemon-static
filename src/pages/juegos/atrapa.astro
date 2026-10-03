@@ -96,6 +96,7 @@ const pokemons = await getWildPokemons()
     import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
+    import { vibrateWithShake } from 'scripts/vibration'
 
     type State = 'idle' | 'throwing' | 'shaking' | 'caught' | 'escaped'
 
@@ -165,6 +166,7 @@ const pokemons = await getWildPokemons()
         if (thisRound !== round) return
 
         setState('shaking')
+        vibrateWithShake(wild)
         await animationsEnd(wild)
         if (thisRound !== round) return
 
