@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets'
+import { getPokemonImage } from 'services/pokemon-images'
 import { getSpanishNames } from 'services/pokemon-species'
 
 interface Props {
@@ -8,25 +8,25 @@ interface Props {
 }
 
 const { url, name } = Astro.props
-const id = url.split('/').at(-2)
+const id = url.split('/').at(-2) ?? ''
 const spanishName = (await getSpanishNames())[name] ?? name
 
-const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+const image = await getPokemonImage(id)
 ---
 
 <a href={`/pokemons/${name}`}>
   <article class='bg-slate-900 border border-slate-600 p-4 rounded-2xl relative'>
     <slot />
 
-    <Image
+    <img
       transition:name={`${name}-image`}
       src={image}
       alt={`Imagen de ${spanishName}`}
       class='mx-auto'
-      width={180}
-      height={180}
-      format='avif'
+      width='180'
+      height='180'
       loading='eager'
+      decoding='async'
     />
 
     <h3 class='text-center capitalize'>

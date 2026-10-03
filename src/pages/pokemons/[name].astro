@@ -1,11 +1,18 @@
 ---
 import type { GetStaticPaths } from 'astro'
-import { Image } from 'astro:assets'
 import MainLayout from '@layouts/MainLayout.astro'
 import { Icon } from 'astro-icon/components'
 import EvolutionChain from '@components/pokemons/EvolutionChain.astro'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
+import {
+  getAnimatedUrl,
+  getCryUrl,
+  getPokemonImage,
+  getRemoteImageUrl,
+  getShinyAnimatedUrl,
+  getShinyImageUrl
+} from 'services/pokemon-images'
 import {
   getDescriptions,
   getEvolutions,
@@ -32,7 +39,7 @@ export const getStaticPaths = (async () => {
 const { name } = Astro.params
 const { url } = Astro.props
 
-const id = url.split('/').at(-2)
+const id = url.split('/').at(-2) ?? ''
 
 const spanishName = (await getSpanishNames())[name] ?? name
 const description = (await getDescriptions())[name]
@@ -42,19 +49,17 @@ const PAGE_TITLE = `#${id} ${spanishName.toLocaleUpperCase()}`
 
 const spokenName = toSpokenName(spanishName)
 
-const SPRITES_URL =
-  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
-const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
-const imageSrc = `${SPRITES_URL}/other/official-artwork/${id}.png`
-const shinyImageSrc = `${SPRITES_URL}/other/official-artwork/shiny/${id}.png`
-const animatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/animated/${id}.gif`
-const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/animated/shiny/${id}.gif`
+const audioSrc = getCryUrl(id)
+const imageSrc = await getPokemonImage(id)
+const shinyImageSrc = getShinyImageUrl(id)
+const animatedSrc = getAnimatedUrl(id)
+const shinyAnimatedSrc = getShinyAnimatedUrl(id)
 ---
 
 <MainLayout
   title={PAGE_TITLE}
   description={`Información, Imagen y Sonido del Pokémon ${spanishName.toLocaleUpperCase()}`}
-  image={imageSrc}
+  image={getRemoteImageUrl(id)}
 >
   <PageHeader>
     <button
@@ -99,15 +104,15 @@ const shinyAnimatedSrc = `${SPRITES_URL}/versions/generation-v/black-white/anima
       id='pokemon-image'
       class='px-8 py-4 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
     >
-      <Image
+      <img
         transition:name={`${name}-image`}
         src={imageSrc}
         alt={`Imagen de ${spanishName}`}
         class='mx-auto group-has-checked:hidden'
-        width={360}
-        height={360}
-        format='avif'
+        width='360'
+        height='360'
         loading='eager'
+        decoding='async'
       />
       <img
         src={shinyImageSrc}

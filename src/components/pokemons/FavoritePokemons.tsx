@@ -4,6 +4,8 @@ import FavoritePokemonCard from './FavoritePokemonCard'
 
 interface Props {
   spanishNames: Record<string, string>
+  // La imagen de cada número, generada al compilar
+  images: Record<number, string>
 }
 
 const getLocalStoragePokemons = (): FavoritePokemon[] => {
@@ -11,7 +13,7 @@ const getLocalStoragePokemons = (): FavoritePokemon[] => {
   return favoritePokemons ? JSON.parse(favoritePokemons) : []
 }
 
-const FavoritePokemons: Component<Props> = ({ spanishNames }) => {
+const FavoritePokemons: Component<Props> = ({ spanishNames, images }) => {
   const [pokemons, setPokemons] = createSignal<FavoritePokemon[]>(
     getLocalStoragePokemons()
   )
@@ -23,6 +25,7 @@ const FavoritePokemons: Component<Props> = ({ spanishNames }) => {
           <FavoritePokemonCard
             pokemon={pokemon}
             spanishName={spanishNames[pokemon.name] ?? pokemon.name}
+            imageSrc={images[pokemon.id]}
           />
         )}
       </For>

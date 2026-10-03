@@ -73,6 +73,7 @@ const {
       <slot />
     </main>
     <script>
+      import { registerServiceWorker } from 'scripts/service-worker'
       import { speak } from 'scripts/sounds'
 
       // Cualquier elemento con data-speak dice su texto al tocarlo
@@ -80,6 +81,10 @@ const {
         const target = (event.target as Element).closest<HTMLElement>('[data-speak]')
         if (target?.dataset.speak) speak(target.dataset.speak)
       })
+
+      // Cuando ya ha cargado la página: lo que guarda para jugar sin conexión
+      // no le quita conexión a lo primero que se ve
+      window.addEventListener('load', registerServiceWorker, { once: true })
     </script>
   </body>
 </html>

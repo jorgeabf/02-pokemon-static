@@ -1,24 +1,14 @@
 import type { Evolution } from 'interfaces/evolution'
+import { fetchInBatches } from 'services/fetch-in-batches'
 
 const POKEMON_COUNT = 151
-// De 10 en 10 reutiliza conexiones: es más rápido y estable que todas a la vez
-const BATCH_SIZE = 10
+export const POKEMON_IDS = Array.from(
+  { length: POKEMON_COUNT },
+  (_, index) => index + 1
+)
 
-const fetchJson = async <T>(url: string) => {
-  const resp = await fetch(url)
-  return (await resp.json()) as T
-}
-
-const fetchInBatches = async <T>(urls: string[]) => {
-  const results: T[] = []
-
-  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
-    const batch = urls.slice(i, i + BATCH_SIZE)
-    results.push(...(await Promise.all(batch.map((url) => fetchJson<T>(url)))))
-  }
-
-  return results
-}
+const fetchJsonInBatches = <T>(urls: string[]) =>
+  fetchInBatches<T>(urls, (resp) => resp.json())
 
 // Se piden una sola vez y se comparten entre todas las páginas.
 // Si fallan, no se guarda el error para reintentar en la siguiente petición.
@@ -35,22 +25,16 @@ const cached = <T>(load: () => Promise<T>) => {
 }
 
 const getAllSpecies = cached(() =>
-  fetchInBatches<PokemonSpeciesResponse>(
-    Array.from(
-      { length: POKEMON_COUNT },
-      (_, index) => `https://pokeapi.co/api/v2/pokemon-species/${index + 1}`
-    )
+  fetchJsonInBatches<PokemonSpeciesResponse>(
+    POKEMON_IDS.map((id) => `https://pokeapi.co/api/v2/pokemon-species/${id}`)
   )
 )
 
 // El peso y los tipos solo están aquí. Cada respuesta pesa ~300 KB (trae
 // todos los movimientos): se queda solo lo que se usa
 const getAllPokemon = cached(async () => {
-  const pokemons = await fetchInBatches<PokemonResponse>(
-    Array.from(
-      { length: POKEMON_COUNT },
-      (_, index) => `https://pokeapi.co/api/v2/pokemon/${index + 1}`
-    )
+  const pokemons = await fetchJsonInBatches<PokemonResponse>(
+    POKEMON_IDS.map((id) => `https://pokeapi.co/api/v2/pokemon/${id}`)
   )
 
   return pokemons.map(({ name, weight, types }) => ({
@@ -65,7 +49,7 @@ const getAllEvolutionChains = cached(async () => {
   const species = await getAllSpecies()
   const urls = new Set(species.map(({ evolution_chain }) => evolution_chain.url))
 
-  return fetchInBatches<EvolutionChainResponse>([...urls])
+  return fetchJsonInBatches<EvolutionChainResponse>([...urls])
 })
 
 export const getSpanishNames = async (): Promise<Record<string, string>> => {

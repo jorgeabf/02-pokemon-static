@@ -1,7 +1,7 @@
 ---
-import { Image } from 'astro:assets'
 import { Icon } from 'astro-icon/components'
 import type { Evolution } from 'interfaces/evolution'
+import { getPokemonImage } from 'services/pokemon-images'
 import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
 
 interface Props {
@@ -15,7 +15,7 @@ const { id, name, evolvesTo } = evolution
 const spanishName = (await getSpanishNames())[name] ?? name
 const spokenName = toSpokenName(spanishName)
 
-const image = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+const image = await getPokemonImage(id)
 const itemClass =
   'evolution-item shrink-0 p-1 rounded-2xl border-2 bg-slate-900 transition-transform active:scale-95'
 ---
@@ -29,12 +29,13 @@ const itemClass =
         class:list={[itemClass, 'border-yellow-400']}
       >
         {/* Sin transition:name: ya lo lleva la imagen grande de la ficha */}
-        <Image
+        <img
           src={image}
           alt={spanishName}
-          width={180}
-          height={180}
-          format='avif'
+          width='180'
+          height='180'
+          loading='lazy'
+          decoding='async'
         />
       </button>
     ) : (
@@ -43,13 +44,14 @@ const itemClass =
         data-speak={spokenName}
         class:list={[itemClass, 'border-slate-600']}
       >
-        <Image
+        <img
           transition:name={`${name}-image`}
           src={image}
           alt={spanishName}
-          width={180}
-          height={180}
-          format='avif'
+          width='180'
+          height='180'
+          loading='lazy'
+          decoding='async'
         />
       </a>
     )
