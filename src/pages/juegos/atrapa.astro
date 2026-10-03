@@ -91,7 +91,7 @@ const pokemons = await getWildPokemons()
     import { addToAlbum, getAlbum } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
-    import { playSound, speak } from 'scripts/sounds'
+    import { canSpeak, playSound, speak } from 'scripts/sounds'
 
     type State = 'idle' | 'throwing' | 'shaking' | 'caught' | 'escaped'
 
@@ -146,7 +146,6 @@ const pokemons = await getWildPokemons()
         cry.src = current.cry
         setState('idle')
 
-        // Al cargar la página aún no se ha tocado nada y el móvil no deja hablar
         if (announce) speak(`¡Un ${current.spokenName} salvaje!`)
       }
 
@@ -183,7 +182,9 @@ const pokemons = await getWildPokemons()
 
       scene.addEventListener('click', throwBall)
       btnNext.addEventListener('click', () => showPokemon({ announce: true }))
-      showPokemon({ announce: false })
+      // Al cargar, solo si ya se ha tocado la página (al venir de /juegos/):
+      // si no, el móvil no deja hablar
+      showPokemon({ announce: canSpeak() })
     }
 
     document.addEventListener('astro:page-load', handleWild)
