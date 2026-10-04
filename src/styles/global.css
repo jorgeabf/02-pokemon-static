@@ -39,6 +39,9 @@
      momento en verde y se va. Sin motion-safe: solo cambia la opacidad, y
      sin la animación se quedaría siempre */
   --animate-offline-ready: offline-ready 3s ease-in forwards;
+  /* Hora de descansar (RestTimer): las «Zzz» de Snorlax dormido suben y se
+     apagan, una y otra vez */
+  --animate-zzz: zzz 2.5s ease-out infinite;
 
   /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos. El
      móvil vibra con cada una: si cambian los tiempos, cambiar también el
@@ -219,6 +222,20 @@
   @keyframes confetti-flutter {
     to {
       rotate: x 360deg;
+    }
+  }
+
+  @keyframes zzz {
+    from {
+      opacity: 0;
+      translate: 0 25%;
+    }
+    30% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      translate: 25% -75%;
     }
   }
 

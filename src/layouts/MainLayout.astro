@@ -1,5 +1,6 @@
 ---
 import Navbar from '@components/shared/Navbar.astro'
+import RestTimer from '@components/shared/RestTimer.astro'
 import { ClientRouter } from 'astro:transitions'
 import { SITE_INFO } from 'consts/site-info'
 import '../styles/global.css'
@@ -91,6 +92,8 @@ const {
     >
       <slot />
     </main>
+    {/* «Hora de descansar»: en todas las páginas, por si se acaba el tiempo */}
+    <RestTimer />
     <script>
       import { registerServiceWorker } from 'scripts/service-worker'
       import { speak } from 'scripts/sounds'
