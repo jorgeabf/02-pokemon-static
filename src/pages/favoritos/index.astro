@@ -4,10 +4,21 @@ import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getPokemonImages } from 'services/pokemon-images'
-import { getSpanishNames, POKEMON_IDS } from 'services/pokemon-species'
+import {
+  getSpanishNames,
+  POKEMON_IDS,
+  toSpokenName
+} from 'services/pokemon-species'
 
-const PAGE_TITLE = 'Pokemons Favoritos'
+// Como en el menú
+const PAGE_TITLE = 'Favoritos'
 const spanishNames = await getSpanishNames()
+const spokenNames = Object.fromEntries(
+  Object.entries(spanishNames).map(([name, spanishName]) => [
+    name,
+    toSpokenName(spanishName)
+  ])
+)
 // Las de los 151: los favoritos solo se saben en el navegador
 const images = await getPokemonImages(POKEMON_IDS)
 ---
@@ -19,6 +30,7 @@ const images = await getPokemonImages(POKEMON_IDS)
   <FavoritePokemons
     client:only='solid-js'
     spanishNames={spanishNames}
+    spokenNames={spokenNames}
     images={images}
   />
 </MainLayout>
