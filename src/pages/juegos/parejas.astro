@@ -76,7 +76,7 @@ const pokemons = await getGamePokemons()
   <script>
     import type { GamePokemon } from 'interfaces/game-pokemon'
     import { animationsEnd } from 'scripts/animations'
-    import { pickSome, shuffle } from 'scripts/random'
+    import { createDeck, drawDistinct, shuffle } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
     type State = 'dealing' | 'idle' | 'checking' | 'mismatch' | 'won'
@@ -92,6 +92,8 @@ const pokemons = await getGamePokemons()
       const btnNext = document.getElementById('pairs-next') as HTMLButtonElement
 
       const pokemons: GamePokemon[] = JSON.parse(board.dataset.pokemons ?? '[]')
+      // De una partida a otra no se repite ninguno hasta que han salido todos
+      const drawPokemon = createDeck(pokemons)
       // El Pokémon de cada carta
       let deck: GamePokemon[] = []
       // La carta boca arriba que espera a su pareja
@@ -132,7 +134,7 @@ const pokemons = await getGamePokemons()
         await animationsEnd(board)
         if (thisRound !== round) return
 
-        const chosen = pickSome(pokemons, cards.length / 2)
+        const chosen = drawDistinct(drawPokemon, cards.length / 2)
         deck = shuffle([...chosen, ...chosen])
         images.forEach((image, index) => {
           image.src = deck[index].image

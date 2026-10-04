@@ -71,7 +71,7 @@ const pokemons = await getGamePokemons()
   <script>
     import type { GamePokemon } from 'interfaces/game-pokemon'
     import { animationsEnd } from 'scripts/animations'
-    import { pickOther, pickSome, shuffle } from 'scripts/random'
+    import { createDeck, pickSome, shuffle } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
 
     type State = 'asking' | 'found'
@@ -87,6 +87,9 @@ const pokemons = await getGamePokemons()
       const btnNext = document.getElementById('find-next') as HTMLButtonElement
 
       const pokemons: GamePokemon[] = JSON.parse(find.dataset.pokemons ?? '[]')
+      // El que se pide no se repite hasta que han salido todos; los otros dos,
+      // cualquiera
+      const drawTarget = createDeck(pokemons)
       let target: GamePokemon | undefined
       let shown: GamePokemon[] = []
       // Cada pregunta es otra ronda: lo que quedara de la anterior se descarta
@@ -113,7 +116,7 @@ const pokemons = await getGamePokemons()
         cry.onended = null
         speechSynthesis.cancel()
 
-        const current = pickOther(pokemons, target)
+        const current = drawTarget()
         target = current
         shown = shuffle([
           current,

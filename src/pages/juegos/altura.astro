@@ -66,7 +66,7 @@ const pokemons = await getMeasuredPokemons()
   <script>
     import type { MeasuredPokemon } from 'interfaces/game-pokemon'
     import { sayHeight } from 'scripts/heights'
-    import { pickOther } from 'scripts/random'
+    import { createDeck, pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
     type Side = 'left' | 'right'
@@ -91,6 +91,9 @@ const pokemons = await getMeasuredPokemons()
       const btnNext = document.getElementById('height-next') as HTMLButtonElement
 
       const pokemons: MeasuredPokemon[] = JSON.parse(scene.dataset.pokemons ?? '[]')
+      // El primero de cada pareja no se repite hasta que han salido todos; el
+      // segundo, cualquiera que se distinga bien de él
+      const drawFirst = createDeck(pokemons)
       const question = scene.dataset.question ?? ''
       let pair: Record<Side, MeasuredPokemon> | undefined
 
@@ -110,7 +113,7 @@ const pokemons = await getMeasuredPokemons()
         cry.pause()
         speechSynthesis.cancel()
 
-        const first = pickOther(pokemons, pair?.left)
+        const first = drawFirst()
         const second = pickOther(
           pokemons.filter((other) => isClearlyDifferent(first, other))
         )

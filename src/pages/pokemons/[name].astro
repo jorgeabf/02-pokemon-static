@@ -23,9 +23,10 @@ import {
   toSpokenName
 } from 'services/pokemon-species'
 
-// La silueta de Ibai (src/icons/child.svg, con el viewBox ajustado a la
-// figura) mide 184 × 232,16; la imagen del Pokémon es cuadrada
-const CHILD_ASPECT = 184 / 232.16
+// La figura de Ibai (src/icons/child.svg, el niño de pie de Noto con el
+// viewBox ajustado a la figura) mide 42,85 × 120,23; la imagen del Pokémon
+// es cuadrada
+const CHILD_ASPECT = 42.85 / 120.23
 
 // Lo que dice la voz al compararse
 const compareWithIbai = (meters: number) => {
@@ -167,7 +168,7 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
         >
           <Icon
             name='child'
-            class='w-auto text-sky-400'
+            class='w-auto'
             style={`--meters: ${IBAI_HEIGHT}`}
           />
           <img

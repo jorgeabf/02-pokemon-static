@@ -77,7 +77,7 @@ const pokemonClass =
 
   <script>
     import type { WeighedPokemon } from 'interfaces/game-pokemon'
-    import { pickOther } from 'scripts/random'
+    import { createDeck, pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
     type Side = 'left' | 'right'
@@ -106,6 +106,9 @@ const pokemonClass =
       const btnNext = document.getElementById('scale-next') as HTMLButtonElement
 
       const pokemons: WeighedPokemon[] = JSON.parse(scale.dataset.pokemons ?? '[]')
+      // El primero de cada pareja no se repite hasta que han salido todos; el
+      // segundo, cualquiera que se distinga bien de él
+      const drawFirst = createDeck(pokemons)
       const question = scale.dataset.question ?? ''
       let pair: Record<Side, WeighedPokemon> | undefined
 
@@ -123,7 +126,7 @@ const pokemonClass =
         cry.pause()
         speechSynthesis.cancel()
 
-        const first = pickOther(pokemons, pair?.left)
+        const first = drawFirst()
         const second = pickOther(
           pokemons.filter((other) => isClearlyDifferent(first, other))
         )
