@@ -72,7 +72,7 @@ const pokemons = await getEvolvingPokemons()
   <script>
     import type { EvolvingPokemon } from 'interfaces/game-pokemon'
     import { animationsEnd } from 'scripts/animations'
-    import { pickOther } from 'scripts/random'
+    import { createDeck, pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
     // Toques para cargar la energía y evolucionar
@@ -91,6 +91,8 @@ const pokemons = await getEvolvingPokemons()
       const btnNext = document.getElementById('evolve-next') as HTMLButtonElement
 
       const pokemons: EvolvingPokemon[] = JSON.parse(evolve.dataset.pokemons ?? '[]')
+      // No repite ninguna cadena hasta que han salido todas
+      const drawPokemon = createDeck(pokemons)
       let first: EvolvingPokemon | undefined
       let current: EvolvingPokemon | undefined
       let taps = 0
@@ -119,7 +121,7 @@ const pokemons = await getEvolvingPokemons()
       const preparePokemon = () => {
         round++
         evolving = false
-        first = pickOther(pokemons, first)
+        first = drawPokemon()
 
         delete evolve.dataset.evolving
         delete evolve.dataset.evolved

@@ -9,7 +9,7 @@ import { getPokemonDrawings } from 'services/pokemon-images'
 
 const PAGE_TITLE = 'Fuego, agua, planta'
 
-// El rival saca uno cualquiera del tipo que le toque
+// El rival saca uno del tipo que le toque
 const pokemons = await getPokemonsByType(BATTLE_ELEMENTS.map(({ key }) => key))
 const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => starter))
 ---
@@ -106,7 +106,7 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
     import { BATTLE_ELEMENTS } from 'consts/battle-elements'
     import type { GamePokemon } from 'interfaces/game-pokemon'
     import { animationsEnd } from 'scripts/animations'
-    import { pickOther } from 'scripts/random'
+    import { createDeck, pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
     type Element = (typeof BATTLE_ELEMENTS)[number]
@@ -139,7 +139,11 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
       const pokemons: Record<string, GamePokemon[]> = JSON.parse(
         battle.dataset.pokemons ?? '{}'
       )
-      let rival: GamePokemon | undefined
+      // Una baraja por tipo: el rival no repite hasta que han salido todos
+      // los de su tipo (12 de fuego, 14 de planta, 32 de agua)
+      const drawRival = Object.fromEntries(
+        BATTLE_ELEMENTS.map(({ key }) => [key, createDeck(pokemons[key])])
+      )
       // Cada combate es otra ronda: lo que quedara del anterior se descarta
       let round = 0
 
@@ -162,8 +166,7 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
         const player = pokemons[playerElement.key].find(
           ({ id }) => id === playerElement.starter
         ) as GamePokemon
-        rival = pickOther(pokemons[rivalElement.key], rival)
-        const opponent = rival
+        const opponent = drawRival[rivalElement.key]()
 
         // Vuelta a empezar: los dos se ocultan (el rival, en su Pokéball)
         // mientras cargan sus imágenes
