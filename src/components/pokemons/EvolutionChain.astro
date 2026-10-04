@@ -9,15 +9,26 @@ interface Props {
 
 const { evolution, current } = Astro.props
 
-const countStages = ({ evolvesTo }: Evolution): number =>
-  1 + Math.max(0, ...evolvesTo.map(countStages))
+// Todo va en una fila, también las ramas (las tres de Eevee, una al lado de
+// otra): el ancho se reparte entre los Pokémon, una flecha delante de cada
+// grupo de evoluciones y un hueco entre rama y rama
+const sum = (counts: number[]) => counts.reduce((total, count) => total + count, 0)
+
+const countPokemons = ({ evolvesTo }: Evolution): number =>
+  1 + sum(evolvesTo.map(countPokemons))
+const countArrows = ({ evolvesTo }: Evolution): number =>
+  (evolvesTo.length > 0 ? 1 : 0) + sum(evolvesTo.map(countArrows))
+const countGaps = ({ evolvesTo }: Evolution): number =>
+  Math.max(0, evolvesTo.length - 1) + sum(evolvesTo.map(countGaps))
 ---
 
-{/* Contenedor y --stages para que todas las fases quepan en una fila (.evolution-item) */}
+{/* Contenedor y recuentos para que todos quepan en una fila (.evolution-item).
+    w-full: en la ficha va en flex, donde mx-auto lo encogería a su
+    contenido, y un @container no tiene contenido que medir */}
 <section
   aria-label='¿En qué se convierte?'
-  class='@container max-w-sm mx-auto mt-4'
-  style={`--stages: ${countStages(evolution)}`}
+  class='@container w-full max-w-sm mx-auto mt-4'
+  style={`--pokemons: ${countPokemons(evolution)}; --arrows: ${countArrows(evolution)}; --gaps: ${countGaps(evolution)}`}
 >
   <EvolutionTree
     evolution={evolution}

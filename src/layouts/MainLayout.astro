@@ -8,6 +8,10 @@ interface Props {
   title?: string
   description?: string
   image?: string
+  // La página mide justo la pantalla bajo el menú, y la página elige qué se
+  // encoge para caber (con h-full dentro de main). Solo si no cabe ni así
+  // hay scroll
+  fitScreen?: boolean
 }
 
 const { SITE_TITLE, SITE_DESCRIPTION, SITE_IMAGE, THEME_COLOR } = SITE_INFO
@@ -15,7 +19,8 @@ const { SITE_TITLE, SITE_DESCRIPTION, SITE_IMAGE, THEME_COLOR } = SITE_INFO
 const {
   title = SITE_TITLE,
   description = SITE_DESCRIPTION,
-  image = SITE_IMAGE
+  image = SITE_IMAGE,
+  fitScreen = false
 } = Astro.props
 ---
 
@@ -67,9 +72,23 @@ const {
     <ClientRouter />
   </head>
 
-  <body class='bg-slate-800 text-slate-100'>
+  <body
+    class:list={[
+      'bg-slate-800 text-slate-100',
+      { 'flex flex-col h-dvh': fitScreen }
+    ]}
+  >
     <Navbar />
-    <main class='max-w-6xl mx-auto px-6 pb-6 relative'>
+    {/* fitScreen: main ocupa el alto que deja el menú en el body de h-dvh, y
+        ese alto es fijo, así que un h-full dentro se resuelve. min-h-0 deja a
+        main más bajo que su contenido (si no, crecería hasta él y no se
+        encogería nada); w-full, porque en flex mx-auto lo encogería */}
+    <main
+      class:list={[
+        'max-w-6xl mx-auto px-6 pb-6 relative',
+        { 'flex-1 min-h-0 w-full': fitScreen }
+      ]}
+    >
       <slot />
     </main>
     <script>

@@ -60,55 +60,60 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
   title={PAGE_TITLE}
   description={`Información, Imagen y Sonido del Pokémon ${spanishName.toLocaleUpperCase()}`}
   image={getRemoteImageUrl(id)}
+  fitScreen
 >
-  <PageHeader>
-    <button
-      onclick='history.back()'
-      aria-label='Volver'
-      class='btn'
-    >
-      <Icon
-        name='arrow-left'
-        size={40}
-      />
-    </button>
-    <PageTitle>
-      {PAGE_TITLE}
-    </PageTitle>
-    <button
-      id='btn-favorite'
-      aria-label='Favorito'
-      aria-pressed='false'
-      class='hover:animate-pulse'
-      data-name={name}
-      data-id={id}
-    >
-      <Icon
-        name='heart-outline'
-        data-outline
-        size={40}
-      />
-      <Icon
-        name='heart-full'
-        data-full
-        size={40}
-        color='red'
-        class='hidden'
-      />
-    </button>
-  </PageHeader>
+  {/* Una columna del alto de la pantalla: si no cabe todo, se encoge la
+      imagen (hasta min-h-40) y lo demás se queda como está. group: la casilla
+      «Brillante» cambia las imágenes solo con CSS (group-has-checked) */}
+  <div class='group flex flex-col h-full'>
+    <PageHeader>
+      <button
+        onclick='history.back()'
+        aria-label='Volver'
+        class='btn'
+      >
+        <Icon
+          name='arrow-left'
+          size={40}
+        />
+      </button>
+      <PageTitle>
+        {PAGE_TITLE}
+      </PageTitle>
+      <button
+        id='btn-favorite'
+        aria-label='Favorito'
+        aria-pressed='false'
+        class='hover:animate-pulse'
+        data-name={name}
+        data-id={id}
+      >
+        <Icon
+          name='heart-outline'
+          data-outline
+          size={40}
+        />
+        <Icon
+          name='heart-full'
+          data-full
+          size={40}
+          color='red'
+          class='hidden'
+        />
+      </button>
+    </PageHeader>
 
-  {/* La casilla «Brillante» cambia las imágenes solo con CSS (group-has-checked) */}
-  <div class='group'>
+    {/* max-h-full: la imagen sigue a la tarjeta cuando se encoge, y
+        object-contain la dibuja entera, sin estirarla, en lo que queda */}
     <div
       id='pokemon-image'
-      class='px-8 py-4 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
+      class='min-h-40 px-8 py-4 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
     >
       <img
         transition:name={`${name}-image`}
         src={imageSrc}
         alt={`Imagen de ${spanishName}`}
-        class='mx-auto group-has-checked:hidden'
+        class='max-h-full mx-auto object-contain group-has-checked:hidden'
         width='360'
         height='360'
         loading='eager'
@@ -117,14 +122,15 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
       <img
         src={shinyImageSrc}
         alt={`Imagen de ${spanishName} brillante`}
-        class='hidden mx-auto group-has-checked:block'
+        class='hidden max-h-full mx-auto object-contain group-has-checked:block'
         width='360'
         height='360'
         loading='lazy'
       />
     </div>
 
-    <div class='grid grid-cols-3 gap-4 max-w-sm mx-auto mt-4'>
+    {/* w-full: en flex, mx-auto lo encogería al ancho de los iconos */}
+    <div class='grid grid-cols-3 gap-4 w-full max-w-sm mx-auto mt-4'>
       <button
         id='btn-cry'
         aria-label='Sonido'
@@ -181,16 +187,16 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
         </button>
       )
     }
-  </div>
 
-  {
-    evolution && evolution.evolvesTo.length > 0 && (
-      <EvolutionChain
-        evolution={evolution}
-        current={name}
-      />
-    )
-  }
+    {
+      evolution && evolution.evolvesTo.length > 0 && (
+        <EvolutionChain
+          evolution={evolution}
+          current={name}
+        />
+      )
+    }
+  </div>
   <audio
     id='cry'
     preload='auto'

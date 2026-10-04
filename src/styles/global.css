@@ -294,13 +294,17 @@
     @apply flex flex-col items-center gap-1 py-4 rounded-2xl text-lg font-bold text-white transition-transform active:scale-95;
   }
 
-  /* Cadena de evolución: todas las fases miden lo mismo y caben en una fila.
-     100cqi es el ancho de la sección, que fija --stages; entre fase y fase
-     va una flecha de --spacing(6) (size-6) */
+  /* Cadena de evolución: todos los Pokémon miden lo mismo y caben en una
+     fila, también las ramas. 100cqi es el ancho de la sección, que fija
+     --pokemons, --arrows (flechas de --spacing(6), size-6) y --gaps (huecos
+     de --spacing(2) entre ramas, gap-2) */
   .evolution-item {
     width: min(
       --spacing(32),
-      calc((100cqi - (var(--stages) - 1) * --spacing(6)) / var(--stages))
+      calc(
+        (100cqi - var(--arrows) * --spacing(6) - var(--gaps) * --spacing(2)) /
+          var(--pokemons)
+      )
     );
   }
 
