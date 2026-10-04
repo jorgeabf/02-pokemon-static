@@ -35,6 +35,10 @@
      (hasta 2,75 s): las vueltas duran 3 s, sin ser infinitas */
   --animate-confetti-fall: confetti-fall 2s ease-in;
   --animate-confetti-flutter: confetti-flutter 0.5s linear 6;
+  /* Barra de jugar sin conexión (Navbar): con todo guardado se queda un
+     momento en verde y se va. Sin motion-safe: solo cambia la opacidad, y
+     sin la animación se quedaría siempre */
+  --animate-offline-ready: offline-ready 3s ease-in forwards;
 
   /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos. El
      móvil vibra con cada una: si cambian los tiempos, cambiar también el
@@ -215,6 +219,16 @@
   @keyframes confetti-flutter {
     to {
       rotate: x 360deg;
+    }
+  }
+
+  @keyframes offline-ready {
+    from,
+    60% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
     }
   }
 

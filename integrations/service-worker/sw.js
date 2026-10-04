@@ -11,6 +11,13 @@ const PARALLEL_DOWNLOADS = 6
 // caché de la versión anterior
 const cacheKey = (url) => new URL(`${url}?v=${PRECACHE[url]}`, location.origin).href
 
+// Cuánto lleva guardado, para la barra de debajo del menú. También a las
+// páginas que aún no controla: en la primera instalación, ninguna
+const reportProgress = async (saved, total) => {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+  clients.forEach((client) => client.postMessage({ type: 'precache-progress', saved, total }))
+}
+
 // Baja lo que falte. Si se corta, lo ya guardado se queda en la caché de esta
 // versión y el siguiente intento sigue desde ahí. Lo que no ha cambiado se
 // copia de la versión anterior: cada despliegue baja solo lo nuevo
@@ -18,6 +25,8 @@ const precache = async () => {
   const cache = await caches.open(PRECACHE_CACHE)
   const saved = new Set((await cache.keys()).map(({ url }) => url))
   const pending = Object.keys(PRECACHE).filter((url) => !saved.has(cacheKey(url)))
+  const total = Object.keys(PRECACHE).length
+  let savedCount = total - pending.length
 
   const download = async () => {
     for (let url = pending.pop(); url; url = pending.pop()) {
@@ -31,6 +40,8 @@ const precache = async () => {
       }
 
       await cache.put(key, response)
+      // Sin esperar: avisar no frena las descargas
+      reportProgress(++savedCount, total)
     }
   }
 
