@@ -62,13 +62,16 @@ const { url, previous, next } = Astro.props
 
 const id = url.split('/').at(-2) ?? ''
 
-const spanishName = (await getSpanishNames())[name] ?? name
+const spanishNames = await getSpanishNames()
+const spanishName = spanishNames[name] ?? name
 const description = (await getDescriptions())[name]
 const evolution = (await getEvolutions())[name]
 
 const PAGE_TITLE = `#${id} ${spanishName.toLocaleUpperCase()}`
 
 const spokenName = toSpokenName(spanishName)
+const spokenNameOf = (pokemon: string) =>
+  toSpokenName(spanishNames[pokemon] ?? pokemon)
 
 // ¿Más grande que yo?: lo que mide (en metros) y la escena (.size-compare)
 const height = (await getHeights())[name]
@@ -189,12 +192,15 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
 
       {/* replace: pasar de uno a otro no llena el historial, y «Volver» sigue
           llevando a donde se estaba antes (la lista, el álbum…). En el #1 no
-          hay anterior ni en el #151 siguiente */}
+          hay anterior ni en el #151 siguiente. Al tocarlas dicen el nombre
+          del Pokémon al que llevan: el ClientRouter no cambia de documento,
+          así que la voz sigue mientras cambia la página */}
       {
         previous && (
           <a
             href={`/pokemons/${previous}`}
             data-astro-history='replace'
+            data-speak={spokenNameOf(previous)}
             aria-label='Anterior'
             class='btn absolute left-1 top-1/2 -translate-y-1/2'
           >
@@ -210,6 +216,7 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
           <a
             href={`/pokemons/${next}`}
             data-astro-history='replace'
+            data-speak={spokenNameOf(next)}
             aria-label='Siguiente'
             class='btn absolute right-1 top-1/2 -translate-y-1/2'
           >
