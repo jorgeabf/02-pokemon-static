@@ -26,7 +26,8 @@ const pokemons = await getGamePokemons()
     {/* La cueva: a oscuras salvo la luz de la linterna, que sigue al dedo
         (scripts/flashlight). Al encontrarlo se enciende la luz y se ven todos.
         Solo hay transición al encenderse: al pasar al siguiente se apaga de
-        golpe, para que no se vea dónde están los nuevos */}
+        golpe, para que no se vea dónde están los nuevos. Cada ronda empieza a
+        oscuras del todo, con la linterna fuera (scripts/find-game) */}
     <div
       class='flashlight grid grid-cols-3 gap-3 p-3 rounded-3xl bg-radial from-stone-500 to-stone-800 group-data-[state=found]:after:opacity-0 group-data-[state=found]:after:transition-opacity group-data-[state=found]:after:duration-700'
     >
