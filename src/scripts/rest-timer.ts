@@ -11,6 +11,9 @@ const TIMER_KEY = 'restEndsAt'
 // Fallos seguidos con la palabra y hasta cuándo hay que esperar
 const GATE_KEY = 'restGate'
 
+// La voz avisa un minuto antes de que se duerma
+const WARNING_MS = 60_000
+
 const HOLD_MS = 2000
 // Tras un fallo, 10 s; con cada fallo seguido, el doble, hasta 5 minutos.
 // Tocando al azar se acierta 1 de cada 4: con una espera fija, Ibai daría
@@ -65,21 +68,47 @@ const fallAsleep = () => {
   if (canSpeak()) speak('¡A descansar! Snorlax se ha dormido')
 }
 
+// El aviso, una vez por cada tiempo que se pone (endsAt), aunque se cambie de
+// página. Si aún no se puede hablar (la app recién abierta, sin tocar), se
+// queda para la siguiente vez que se mire, al navegar o volver a la app
+let warningTimeout: number | undefined
+let warnedFor: number | undefined
+
+const warn = (endsAt: number) => {
+  if (warnedFor === endsAt || !canSpeak()) return
+
+  warnedFor = endsAt
+  speak('¡Snorlax tiene sueño! En un minuto se dormirá')
+}
+
 // Al cargar cada página, al volver a la app y al cambiar el tiempo
 const schedule = () => {
   clearTimeout(sleepTimeout)
+  clearTimeout(warningTimeout)
 
   const endsAt = getEndsAt()
 
   if (endsAt === undefined) return
 
-  if (endsAt <= Date.now()) fallAsleep()
-  else sleepTimeout = window.setTimeout(fallAsleep, endsAt - Date.now())
+  const now = Date.now()
+
+  if (endsAt <= now) {
+    fallAsleep()
+    return
+  }
+
+  sleepTimeout = window.setTimeout(fallAsleep, endsAt - now)
+
+  // Ya en el último minuto (al volver a la app, por ejemplo): ahora
+  const warnAt = endsAt - WARNING_MS
+  if (warnAt <= now) warn(endsAt)
+  else warningTimeout = window.setTimeout(() => warn(endsAt), warnAt - now)
 }
 
 const clearTimer = () => {
   localStorage.removeItem(TIMER_KEY)
   clearTimeout(sleepTimeout)
+  clearTimeout(warningTimeout)
 }
 
 // El adulto: primero la palabra y, si acierta, lo que venía a hacer

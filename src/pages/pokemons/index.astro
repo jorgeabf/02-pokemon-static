@@ -12,6 +12,9 @@ const { results } = (await resp.json()) as PokemonListResponse
 // Las de la primera pantalla (4 filas a 375 px), ya; el resto, al acercarse
 // con el scroll
 const EAGER_CARDS = 8
+
+// Para no bajar con el dedo hasta el 100: cada 25, desde el 1
+const JUMPS = [1, 25, 50, 75, 100, 125, 150]
 ---
 
 <MainLayout title={PAGE_TITLE}>
@@ -19,15 +22,47 @@ const EAGER_CARDS = 8
     <PageTitle>{PAGE_TITLE}</PageTitle>
   </PageHeader>
 
+  {/* Los saltos, en cifra (Ibai lee los números). Fijos debajo del menú al
+      bajar: desde cualquier punto de la lista se va a otro tramo. Son anclas,
+      sin JS; con replace no llenan el historial, y el «atrás» sigue saliendo
+      de la lista. -mx-6 px-6: el fondo tapa de lado a lado las tarjetas que
+      pasan por debajo */}
+  <nav
+    aria-label='Saltar a'
+    class='sticky top-nav z-10 -mx-6 px-6 py-2 bg-slate-800'
+  >
+    <ul class='grid grid-cols-7 gap-1 max-w-md mx-auto'>
+      {
+        JUMPS.map((number) => (
+          <li>
+            <a
+              href={`#pokemon-${number}`}
+              data-astro-history='replace'
+              data-speak={String(number)}
+              class='btn w-full'
+            >
+              {number}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
   {/* Los 151 en una sola página: Ibai baja con el dedo en vez de pasar
-      páginas con flechas */}
+      páginas con flechas. Cada uno es un ancla (#pokemon-25). scroll-mt-18:
+      al saltar queda debajo de la fila de saltos (56) con el hueco de la
+      lista (16); el menú ya lo descuenta scroll-pt-nav. Al llegar, salta */}
   <ul
     aria-label='Pokémons'
     class='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'
   >
     {
       results.map(({ name, url }, index) => (
-        <li>
+        <li
+          id={`pokemon-${index + 1}`}
+          class='scroll-mt-18 motion-safe:target:animate-battle-cheer'
+        >
           <PokemonCard
             name={name}
             url={url}

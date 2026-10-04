@@ -25,7 +25,12 @@ const {
 } = Astro.props
 ---
 
-<html lang='es'>
+<html
+  lang='es'
+  class='scroll-pt-nav'
+>
+  {/* scroll-pt-nav: al saltar a un ancla, lo que se busca queda debajo del
+      menú fijo y no tapado por él */}
   <head>
     <meta charset='utf-8' />
     <link

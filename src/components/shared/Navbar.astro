@@ -20,8 +20,9 @@ const drawings = await getPokemonDrawings(albumSample.map(({ id }) => id))
 ---
 
 {/* Fijo arriba para cambiar de sección sin subir; z-10 lo deja encima de lo
-    que se apila en las páginas (tarjetas, la oscuridad de la cueva…) */}
-<nav class='sticky top-0 z-10 bg-slate-900 border-b border-slate-600'>
+    que se apila en las páginas (tarjetas, la oscuridad de la cueva…). Su
+    alto es el token --spacing-nav (global.css), que usan las anclas */}
+<nav class='sticky top-0 z-10 h-nav bg-slate-900 border-b border-slate-600'>
   {/* Columnas iguales: a 320 px cada una mide 57,6 y cabe el fondo de 56 de
       la sección actual */}
   <ul class='grid grid-cols-5 justify-items-center max-w-lg px-4 py-1 mx-auto'>

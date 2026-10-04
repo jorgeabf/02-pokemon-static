@@ -4,6 +4,12 @@
    Con transformaciones sueltas (rotate, translate, scale) para que se sumen
    a las de las utilidades en vez de pisarlas */
 @theme {
+  /* El alto del menú, fijo arriba (Navbar): enlaces de 56 con py-1 y el
+     borde de abajo. Lo usan el propio menú (h-nav), los saltos a un ancla
+     para no quedar debajo de él (scroll-pt-nav en html) y lo que se queda
+     fijo justo debajo (top-nav) */
+  --spacing-nav: calc(var(--spacing) * 16 + 1px);
+
   --animate-ball-shake: ball-shake 1.5s ease-in-out;
   --animate-ball-open-top: ball-open-top 0.6s ease-out;
   --animate-ball-open-bottom: ball-open-bottom 0.6s ease-in;
