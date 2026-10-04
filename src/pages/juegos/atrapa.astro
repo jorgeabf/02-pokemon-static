@@ -70,7 +70,7 @@ const pokemons = await getWildPokemons()
       <span
         class='col-start-1 row-start-1 self-start hidden w-1/4 group-data-medal:block motion-safe:group-data-medal:animate-pokemon-pop'
       >
-        <Medal class='w-full'><span id='wild-medal'></span></Medal>
+        <Medal class='w-full'><span data-medal-number></span></Medal>
       </span>
     </button>
 
@@ -99,9 +99,8 @@ const pokemons = await getWildPokemons()
   ></audio>
 
   <script>
-    import { ALBUM_MEDALS } from 'consts/album-medals'
     import type { WildPokemon } from 'interfaces/game-pokemon'
-    import { addToAlbum, getAlbum, medalAt } from 'scripts/album'
+    import { clearAlbumReward, getAlbum, rewardAlbum } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
@@ -114,12 +113,6 @@ const pokemons = await getWildPokemons()
     const catchChance = ({ captureRate }: WildPokemon) =>
       0.5 + (0.5 * captureRate) / 255
 
-    // Con la última medalla ya los tiene todos
-    const sayMedal = (medal: number) =>
-      medal === ALBUM_MEDALS.at(-1)
-        ? ` ¡Ya los tienes todos! ¡Medalla de ${medal}!`
-        : ` ¡Y has ganado la medalla de ${medal}!`
-
     const handleWild = () => {
       const wild = document.getElementById('wild') as HTMLDivElement
 
@@ -129,7 +122,6 @@ const pokemons = await getWildPokemons()
       const image = document.getElementById('wild-image') as HTMLImageElement
       const name = document.getElementById('wild-name') as HTMLParagraphElement
       const cry = document.getElementById('wild-cry') as HTMLAudioElement
-      const medalNumber = document.getElementById('wild-medal') as HTMLSpanElement
       const btnNext = document.getElementById('wild-next') as HTMLButtonElement
 
       const pokemons: WildPokemon[] = JSON.parse(wild.dataset.pokemons ?? '[]')
@@ -157,8 +149,7 @@ const pokemons = await getWildPokemons()
         wanted?: WildPokemon
       }) => {
         round++
-        delete wild.dataset.celebrate
-        delete wild.dataset.medal
+        clearAlbumReward(wild)
         cry.onended = null
         speechSynthesis.cancel()
 
@@ -195,17 +186,8 @@ const pokemons = await getWildPokemons()
         if (thisRound !== round) return
 
         if (Math.random() < catchChance(pokemon)) {
-          const isNew = addToAlbum(pokemon.id)
-          const medal = isNew ? medalAt(getAlbum().length) : undefined
           setState('caught')
-          if (isNew) wild.dataset.celebrate = ''
-          if (medal) {
-            medalNumber.textContent = String(medal)
-            wild.dataset.medal = ''
-          }
-          sayAfterCry(
-            `¡Has atrapado a ${pokemon.spokenName}!${isNew ? ' ¡Nuevo en tu álbum!' : ''}${medal ? sayMedal(medal) : ''}`
-          )
+          sayAfterCry(`¡Has atrapado a ${pokemon.spokenName}!${rewardAlbum(wild, [pokemon.id])}`)
           return
         }
 

@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
+import AlbumPrize from '@components/games/AlbumPrize.astro'
 import GameHeader from '@components/games/GameHeader.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { BERRIES } from 'consts/berries'
@@ -83,6 +84,10 @@ const plateStyle = (x: number) =>
           </button>
         ))
       }
+
+      {/* Si le da la baya a la primera, el Pokémon va al álbum. La medalla
+          sale en el plato de en medio, que mide lo mismo (w-1/4) */}
+      <AlbumPrize medalClass='bottom-[4%] left-[37.5%]' />
     </div>
 
     <div class='grid grid-cols-2 gap-4'>
@@ -116,6 +121,7 @@ const plateStyle = (x: number) =>
   <script>
     import type { GameBerry } from 'interfaces/game-berry'
     import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { clearAlbumReward, rewardAlbum } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
     import { createDeck, pickSome, shuffle } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
@@ -133,6 +139,7 @@ const plateStyle = (x: number) =>
       const cry = document.getElementById('feed-cry') as HTMLAudioElement
       const btnAsk = document.getElementById('feed-ask') as HTMLButtonElement
       const btnNext = document.getElementById('feed-next') as HTMLButtonElement
+      const prize = feed.querySelector('[data-album-prize]') as HTMLElement
 
       const pokemons: GamePokemon[] = JSON.parse(feed.dataset.pokemons ?? '[]')
       const berries: GameBerry[] = JSON.parse(feed.dataset.berries ?? '[]')
@@ -143,6 +150,8 @@ const plateStyle = (x: number) =>
       let pokemon: GamePokemon | undefined
       let wanted: GameBerry | undefined
       let shown: GameBerry[] = []
+      // Si ya le ha ofrecido una que no quería: entonces no va al álbum
+      let missed = false
       // Cada Pokémon es otra ronda: lo que quedara de la anterior se descarta
       let round = 0
 
@@ -155,10 +164,11 @@ const plateStyle = (x: number) =>
         if (pokemon && wanted) speak(`¡${pokemon.spokenName} quiere la baya ${wanted.color}!`)
       }
 
-      const sayFed = () => {
+      // reward: lo que añade el álbum, si es nuevo o trae medalla
+      const sayFed = (reward = '') => {
         if (!pokemon || !wanted) return
 
-        const phrase = `¡Ñam, ñam! ¡A ${pokemon.spokenName} le encanta la baya ${wanted.color}!`
+        const phrase = `¡Ñam, ñam! ¡A ${pokemon.spokenName} le encanta la baya ${wanted.color}!${reward}`
         speechSynthesis.cancel()
         cry.onended = () => speak(phrase)
         playSound(cry)
@@ -174,6 +184,8 @@ const plateStyle = (x: number) =>
       // cualquiera
       const showRound = () => {
         round++
+        missed = false
+        clearAlbumReward(prize)
         cry.onended = null
         speechSynthesis.cancel()
         delete feed.dataset.refuse
@@ -208,7 +220,8 @@ const plateStyle = (x: number) =>
 
         const thisRound = round
 
-        // La buena: vuela a su boca, se la come y se pone contento
+        // La buena: vuela a su boca, se la come y se pone contento. A la
+        // primera, va al álbum
         if (berry === wanted) {
           plate.dataset.chosen = ''
           setState('eating')
@@ -217,14 +230,15 @@ const plateStyle = (x: number) =>
           if (thisRound !== round) return
 
           setState('fed')
-          sayFed()
+          sayFed(missed ? '' : rewardAlbum(prize, [pokemon.id]))
           return
         }
 
         // Otra: dice que no con la cabeza, y la voz dice de qué color es la
-        // que ha tocado y cuál quiere. No se pierde
+        // que ha tocado y cuál quiere. No se pierde, pero ya no va al álbum
         if ('refuse' in feed.dataset) return
 
+        missed = true
         feed.dataset.refuse = ''
         speak(`Esa es la ${berry.color}. ¡${pokemon.spokenName} quiere la ${wanted.color}!`)
         await animationsEnd(btnPokemon)

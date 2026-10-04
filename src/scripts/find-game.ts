@@ -1,4 +1,5 @@
 import type { GamePokemon } from 'interfaces/game-pokemon'
+import { clearAlbumReward, rewardAlbum } from 'scripts/album'
 import { animationsEnd } from 'scripts/animations'
 import { createDeck, pickSome, shuffle } from 'scripts/random'
 import { canSpeak, playSound, speak } from 'scripts/sounds'
@@ -19,6 +20,7 @@ const handleFind = () => {
   const cry = document.getElementById('find-cry') as HTMLAudioElement
   const btnAsk = document.getElementById('find-ask') as HTMLButtonElement
   const btnNext = document.getElementById('find-next') as HTMLButtonElement
+  const prize = find.querySelector('[data-album-prize]') as HTMLElement
 
   const pokemons: GamePokemon[] = JSON.parse(find.dataset.pokemons ?? '[]')
   // El que se pide no se repite hasta que han salido todos; los otros,
@@ -26,6 +28,8 @@ const handleFind = () => {
   const drawTarget = createDeck(pokemons)
   let target: GamePokemon | undefined
   let shown: GamePokemon[] = []
+  // Si ya ha tocado uno que no era: entonces no va al álbum
+  let missed = false
   // Cada pregunta es otra ronda: lo que quedara de la anterior se descarta
   let round = 0
 
@@ -38,15 +42,18 @@ const handleFind = () => {
     if (target) speak(`¿Dónde está ${target.spokenName}?`)
   }
 
-  const sayFound = ({ spokenName }: GamePokemon) => {
+  // reward: lo que añade el álbum, si es nuevo o trae medalla
+  const sayFound = ({ spokenName }: GamePokemon, reward = '') => {
     speechSynthesis.cancel()
-    cry.onended = () => speak(`¡Muy bien! ¡Es ${spokenName}!`)
+    cry.onended = () => speak(`¡Muy bien! ¡Es ${spokenName}!${reward}`)
     playSound(cry)
   }
 
   // El que se pide y otros, en un orden cualquiera
   const showPokemons = () => {
     round++
+    missed = false
+    clearAlbumReward(prize)
     cry.onended = null
     speechSynthesis.cancel()
 
@@ -82,16 +89,19 @@ const handleFind = () => {
       return
     }
 
+    // A la primera, va al álbum
     if (pokemon === target) {
       setState('found')
-      sayFound(target)
+      sayFound(target, missed ? '' : rewardAlbum(prize, [target.id]))
       return
     }
 
-    // Ese no es: niega, dice quién es y vuelve a preguntar. No se pierde
+    // Ese no es: niega, dice quién es y vuelve a preguntar. No se pierde,
+    // pero ya no va al álbum
     if ('wrong' in option.dataset) return
 
     const thisRound = round
+    missed = true
     option.dataset.wrong = ''
     speak(`Ese es ${pokemon.spokenName}. ¿Dónde está ${target.spokenName}?`)
     await animationsEnd(option)

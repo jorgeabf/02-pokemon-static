@@ -1,0 +1,30 @@
+---
+import Confetti from '@components/shared/Confetti.astro'
+import Medal from '@components/shared/Medal.astro'
+
+interface Props {
+  // Dónde sale la medalla, para que no tape lo importante de cada juego
+  medalClass?: string
+}
+
+const { medalClass = 'top-0 left-1/2 -translate-x-1/2' } = Astro.props
+---
+
+{/* Un Pokémon nuevo en el álbum (rewardAlbum en scripts/album.ts), como en
+    ¡Atrápalo!: con data-celebrate, confeti; con data-medal, la medalla con su
+    número. Ocupa el juego, que tiene que llevar relative, y no tapa los
+    toques */}
+<div
+  data-album-prize
+  class='pointer-events-none absolute inset-0'
+>
+  <Confetti />
+  <span
+    class:list={[
+      'absolute hidden w-1/4 in-data-medal:block motion-safe:in-data-medal:animate-pokemon-pop',
+      medalClass
+    ]}
+  >
+    <Medal class='w-full'><span data-medal-number></span></Medal>
+  </span>
+</div>
