@@ -106,12 +106,13 @@ const pokemons = await getMeasuredPokemons()
         buttons[side].setAttribute('aria-label', pokemon.name)
       }
 
-      // Lo que quede de la ronda anterior (grito y frase) se corta
+      // El grito de la ronda anterior se corta. La voz no: al entrar sigue la
+      // pregunta que dice la casilla de /juegos/, y con «Otro» la corta la
+      // pregunta nueva
       const showPair = () => {
         delete scene.dataset.taller
         cry.onended = null
         cry.pause()
-        speechSynthesis.cancel()
 
         const first = drawFirst()
         const second = pickOther(

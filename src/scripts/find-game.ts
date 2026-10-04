@@ -1,6 +1,7 @@
 import type { GamePokemon } from 'interfaces/game-pokemon'
 import { clearAlbumReward, rewardAlbum } from 'scripts/album'
 import { animationsEnd } from 'scripts/animations'
+import { switchOffLight } from 'scripts/flashlight'
 import { createDeck, pickSome, shuffle } from 'scripts/random'
 import { canSpeak, playSound, speak } from 'scripts/sounds'
 
@@ -21,6 +22,8 @@ const handleFind = () => {
   const btnAsk = document.getElementById('find-ask') as HTMLButtonElement
   const btnNext = document.getElementById('find-next') as HTMLButtonElement
   const prize = find.querySelector('[data-album-prize]') as HTMLElement
+  // Solo en Escondite
+  const flashlight = find.querySelector<HTMLElement>('.flashlight')
 
   const pokemons: GamePokemon[] = JSON.parse(find.dataset.pokemons ?? '[]')
   // El que se pide no se repite hasta que han salido todos; los otros,
@@ -78,6 +81,9 @@ const handleFind = () => {
     })
     cry.src = current.cry
     setState('asking')
+    // A oscuras del todo hasta que toque: si no, ya se vería el que esté
+    // donde se quedó la luz (o en el centro, al entrar)
+    if (flashlight) switchOffLight(flashlight)
   }
 
   const choose = async (option: HTMLButtonElement, pokemon: GamePokemon) => {

@@ -1,4 +1,6 @@
-// Uno al azar que no sea el actual, para que no salga el mismo dos veces seguidas
+// Uno al azar que no sea el actual, para que no salga el mismo dos veces
+// seguidas. items tiene que tener alguno más que el actual: si no, no hay
+// ninguno que sacar (undefined)
 export const pickOther = <T>(items: T[], current?: T) => {
   const candidates = items.filter((item) => item !== current)
   return candidates[Math.floor(Math.random() * candidates.length)]

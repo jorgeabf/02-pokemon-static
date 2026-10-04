@@ -44,9 +44,9 @@ const snorlax = await getPokemonImage(143)
   </div>
 </dialog>
 
-{/* Para el adulto. Primero, tocar la palabra que se pide (Ibai lee números,
-    no palabras); luego (data-step=panel), el temporizador. Con texto: es
-    para el adulto */}
+{/* Para el adulto. Primero, tocar en orden las dos palabras que se piden
+    (Ibai lee números, no palabras); luego (data-step=panel), el
+    temporizador. Con texto: es para el adulto */}
 <dialog
   id='rest-adult'
   data-step='gate'
@@ -67,14 +67,18 @@ const snorlax = await getPokemonImage(143)
     </button>
 
     <section class='grid gap-4 group-data-[step=panel]:hidden'>
-      <p>Para el adulto: toca la palabra <strong id='rest-word'></strong></p>
+      <p>
+        Para el adulto: toca <strong id='rest-first'></strong> y luego <strong id='rest-second'></strong>
+      </p>
+      {/* La primera, ya tocada, se queda marcada (aria-pressed) */}
       <div class='grid grid-cols-2 gap-3'>
         {
           [0, 1, 2, 3].map(() => (
             <button
               type='button'
               data-word
-              class='py-3 rounded-xl bg-slate-700 text-lg font-bold disabled:opacity-40'
+              aria-pressed='false'
+              class='py-3 rounded-xl bg-slate-700 aria-pressed:bg-green-700 text-lg font-bold disabled:opacity-40'
             ></button>
           ))
         }

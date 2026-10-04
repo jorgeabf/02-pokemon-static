@@ -15,6 +15,14 @@ const followFinger = (flashlight: HTMLElement) => {
   flashlight.addEventListener('pointermove', moveLight)
 }
 
+// La luz, fuera: todo a oscuras hasta que el dedo la vuelva a mover. A un
+// alto entero por encima (-100 %), más lejos que el borde de la luz
+// (--spacing(24) en global.css) en cualquier linterna de más de 96 px
+export const switchOffLight = (flashlight: HTMLElement) => {
+  flashlight.style.setProperty('--x', '50%')
+  flashlight.style.setProperty('--y', '-100%')
+}
+
 document.addEventListener('astro:page-load', () => {
   const flashlight = document.querySelector<HTMLElement>('.flashlight')
 

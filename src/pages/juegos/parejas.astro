@@ -124,7 +124,6 @@ const pokemons = await getGamePokemons()
         const thisRound = ++round
         first = undefined
         cry.onended = null
-        speechSynthesis.cancel()
         clearAlbumReward(prize)
 
         // Primero se tapan todas y, ya tapadas, se cambian los Pokémon: si
@@ -205,7 +204,12 @@ const pokemons = await getGamePokemons()
       cards.forEach((card, index) =>
         card.addEventListener('click', () => turnUp(index))
       )
-      btnNext.addEventListener('click', deal)
+      // Con «Otra partida» se corta lo que dijera la anterior. Al entrar no:
+      // sigue el nombre del juego, que dice su casilla de /juegos/
+      btnNext.addEventListener('click', () => {
+        speechSynthesis.cancel()
+        deal()
+      })
       deal()
     }
 

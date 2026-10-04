@@ -144,6 +144,14 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
       const drawRival = Object.fromEntries(
         BATTLE_ELEMENTS.map(({ key }) => [key, createDeck(pokemons[key])])
       )
+      // Nunca el mismo Pokémon que el de Ibai: en un empate saldría
+      // «¡Charmander contra Charmander!». La baraja no da dos iguales
+      // seguidos: si sale el suyo, el siguiente ya es otro. Los otros
+      // iniciales sí pueden salir
+      const drawOpponent = (element: Element, player: GamePokemon) => {
+        const opponent = drawRival[element.key]()
+        return opponent.id === player.id ? drawRival[element.key]() : opponent
+      }
       // Cada combate es otra ronda: lo que quedara del anterior se descarta
       let round = 0
 
@@ -166,7 +174,7 @@ const drawings = await getPokemonDrawings(BATTLE_ELEMENTS.map(({ starter }) => s
         const player = pokemons[playerElement.key].find(
           ({ id }) => id === playerElement.starter
         ) as GamePokemon
-        const opponent = drawRival[rivalElement.key]()
+        const opponent = drawOpponent(rivalElement, player)
 
         // Vuelta a empezar: los dos se ocultan (el rival, en su Pokéball)
         // mientras cargan sus imágenes
