@@ -20,6 +20,7 @@ const pokemonClass =
     id='scale'
     class='group grid gap-6 max-w-sm mx-auto'
     data-pokemons={JSON.stringify(pokemons)}
+    data-question={PAGE_TITLE}
   >
     {/* Escena cuadrada: suelo en el sexto de abajo, el apoyo (triángulo de
         alto el 20 % del ancho) encima y la tabla sobre su punta, girando
@@ -105,6 +106,7 @@ const pokemonClass =
       const btnNext = document.getElementById('scale-next') as HTMLButtonElement
 
       const pokemons: WeighedPokemon[] = JSON.parse(scale.dataset.pokemons ?? '[]')
+      const question = scale.dataset.question ?? ''
       let pair: Record<Side, WeighedPokemon> | undefined
 
       const show = (side: Side, pokemon: WeighedPokemon) => {
@@ -114,9 +116,11 @@ const pokemonClass =
         buttons[side].setAttribute('aria-label', pokemon.name)
       }
 
+      // Lo que quede de la ronda anterior (grito y frase) se corta
       const showPair = () => {
         delete scale.dataset.heavier
         cry.onended = null
+        cry.pause()
         speechSynthesis.cancel()
 
         const first = pickOther(pokemons, pair?.left)
@@ -152,7 +156,12 @@ const pokemonClass =
 
       buttons.left.addEventListener('click', () => choose('left'))
       buttons.right.addEventListener('click', () => choose('right'))
-      btnNext.addEventListener('click', showPair)
+      // Cada pareja nueva empieza con la pregunta. La primera no: la acaba de
+      // decir su casilla de /juegos/
+      btnNext.addEventListener('click', () => {
+        showPair()
+        speak(question)
+      })
       showPair()
     }
 

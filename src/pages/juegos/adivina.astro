@@ -16,6 +16,7 @@ const pokemons = await getGamePokemons()
     id='game'
     class='group grid gap-6 max-w-sm mx-auto'
     data-pokemons={JSON.stringify(pokemons)}
+    data-question={PAGE_TITLE}
   >
     <button
       id='game-reveal'
@@ -70,6 +71,7 @@ const pokemons = await getGamePokemons()
       const btnNext = document.getElementById('game-next') as HTMLButtonElement
 
       const pokemons: GamePokemon[] = JSON.parse(game.dataset.pokemons ?? '[]')
+      const question = game.dataset.question ?? ''
       let current: GamePokemon | undefined
 
       const showRandomPokemon = () => {
@@ -97,7 +99,12 @@ const pokemons = await getGamePokemons()
       }
 
       btnReveal.addEventListener('click', reveal)
-      btnNext.addEventListener('click', showRandomPokemon)
+      // Cada Pokémon nuevo empieza con la pregunta. El primero no: la acaba
+      // de decir su casilla de /juegos/
+      btnNext.addEventListener('click', () => {
+        showRandomPokemon()
+        speak(question)
+      })
       showRandomPokemon()
     }
 
