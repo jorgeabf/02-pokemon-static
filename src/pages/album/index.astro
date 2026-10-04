@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components'
 import Medal from '@components/shared/Medal.astro'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
@@ -6,6 +7,7 @@ import MainLayout from '@layouts/MainLayout.astro'
 import { ALBUM_MEDALS } from 'consts/album-medals'
 import { getPokemonDrawings } from 'services/pokemon-images'
 import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
+import trophyIcon from '../../icons/trophy.svg?raw'
 
 const PAGE_TITLE = 'Mi álbum'
 
@@ -69,6 +71,93 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
     }
   </ul>
 
+  {/* Las copas: una por cada vez que lo ha completado y vuelto a empezar, con
+      su número. Las pone el script desde la plantilla; sin ninguna, no se ve.
+      La recién ganada (data-new) sale de golpe. En la plantilla, el SVG
+      entero y no <Icon>: astro-icon solo pinta el dibujo en el primero de la
+      página y los demás lo enlazan, y dentro de una plantilla ese primero no
+      estaría en el documento (la copa del diálogo saldría vacía) */}
+  <ul
+    id='album-trophies'
+    aria-label='Copas'
+    hidden
+    class='grid grid-cols-5 gap-2 max-w-sm mx-auto mb-4'
+  >
+  </ul>
+  <template id='album-trophy'>
+    <li class='@container'>
+      <button
+        aria-label='Copa'
+        class='relative block w-full transition-transform active:scale-95 motion-safe:in-data-new:animate-pokemon-pop'
+      >
+        <span
+          set:html={trophyIcon}
+          class='block text-yellow-400 [&>svg]:size-full'
+        />
+        {/* Dentro del vaso: en el icono (256 de alto) va de y=40 a y=192, y
+            lo más ancho, hasta y=136. La cifra, a 30cqi desde el 22 %, queda
+            centrada hacia el 37 % */}
+        <span
+          data-trophy-number
+          class='absolute inset-x-0 top-[22%] text-[30cqi] leading-none font-black text-amber-800'
+        ></span>
+      </button>
+    </li>
+  </template>
+
+  {/* Con el álbum lleno, empezar otra vez: pregunta antes (y lo dice, Ibai
+      no lee), se vacía y gana una copa */}
+  <button
+    id='album-restart'
+    hidden
+    aria-label='Empezar otra vez'
+    class='btn-big w-full max-w-sm mx-auto mb-4 bg-green-600 hover:bg-green-700'
+  >
+    <Icon
+      name='arrow-counter-clockwise'
+      size={40}
+    />
+  </button>
+  {/* form method=dialog cierra el diálogo y deja el botón pulsado en
+      returnValue, como al borrar un favorito */}
+  <dialog
+    id='album-restart-dialog'
+    class='m-auto w-72 p-6 rounded-2xl bg-slate-900 text-slate-100 border border-slate-600 backdrop:bg-black/70'
+  >
+    <form
+      method='dialog'
+      class='grid gap-4 text-center'
+    >
+      <Icon
+        name='trophy'
+        class='mx-auto size-24 text-yellow-400'
+      />
+      <p class='text-xl font-bold'>¿Empezar el álbum otra vez?</p>
+      <div class='grid grid-cols-2 gap-4'>
+        <button
+          value='no'
+          aria-label='No'
+          class='btn-big bg-slate-600'
+        >
+          <Icon
+            name='x'
+            size={40}
+          />
+        </button>
+        <button
+          value='yes'
+          aria-label='Sí'
+          class='btn-big bg-green-600'
+        >
+          <Icon
+            name='check'
+            size={40}
+          />
+        </button>
+      </div>
+    </form>
+  </dialog>
+
   {/* Las que faltan, en sombra, llevan a ¡Atrápalo! con ese Pokémon (?id=),
       que al entrar dice cuál es; el script colorea las atrapadas y las
       enlaza a su ficha */}
@@ -106,7 +195,8 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
   </ul>
 
   <script>
-    import { getAlbum } from 'scripts/album'
+    import { getAlbum, getRounds, restartAlbum } from 'scripts/album'
+    import { speak } from 'scripts/sounds'
 
     const handleAlbum = () => {
       const grid = document.getElementById('album-grid') as HTMLUListElement
@@ -116,44 +206,97 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
       const btnCount = document.getElementById('album-count') as HTMLButtonElement
       const progress = document.getElementById('album-progress') as HTMLProgressElement
       const total = document.getElementById('album-total') as HTMLSpanElement
+      const trophies = document.getElementById('album-trophies') as HTMLUListElement
+      const trophyTemplate = document.getElementById('album-trophy') as HTMLTemplateElement
+      const btnRestart = document.getElementById('album-restart') as HTMLButtonElement
+      const dialog = document.getElementById('album-restart-dialog') as HTMLDialogElement
 
-      const album = getAlbum()
+      // Todo sale de lo guardado, en los dos sentidos: al empezar otra vez,
+      // las que tenía vuelven a la sombra. newTrophy: la copa recién ganada
+      const render = (newTrophy?: number) => {
+        const album = getAlbum()
+        const full = album.length === progress.max
 
-      album.forEach((id) => {
-        const item = grid.querySelector<HTMLLIElement>(`[data-id="${id}"]`)
-        const link = item?.querySelector('a')
+        grid.querySelectorAll<HTMLLIElement>('[data-id]').forEach((item) => {
+          const link = item.querySelector('a') as HTMLAnchorElement
+          const captured = album.includes(Number(item.dataset.id))
 
-        if (!item || !link) return
+          item.toggleAttribute('data-captured', captured)
+          link.href = captured
+            ? `/pokemons/${link.dataset.name}`
+            : `/juegos/atrapa/?id=${item.dataset.id}`
+          link.setAttribute('aria-label', captured ? (link.dataset.label ?? '') : '¿Quién será?')
+          if (captured) link.dataset.speak = link.dataset.spoken
+          else delete link.dataset.speak
+        })
 
-        item.dataset.captured = ''
-        link.href = `/pokemons/${link.dataset.name}`
-        link.setAttribute('aria-label', link.dataset.label ?? '')
-        link.dataset.speak = link.dataset.spoken
+        progress.value = album.length
+        total.textContent = String(album.length)
+        btnCount.dataset.speak =
+          album.length === 0
+            ? 'Todavía no tienes ninguno. ¡Ve a atraparlos!'
+            : full
+              ? '¡Los tienes todos! Puedes empezar otra vez'
+              : `Tienes ${album.length} Pokémon de ${progress.max}`
+
+        // Las medallas salen de la cuenta: no se guardan aparte
+        document
+          .querySelectorAll<HTMLLIElement>('#album-medals [data-medal]')
+          .forEach((item) => {
+            const medal = Number(item.dataset.medal)
+            const missing = medal - album.length
+            const button = item.querySelector('button') as HTMLButtonElement
+
+            item.toggleAttribute('data-earned', missing <= 0)
+            button.dataset.speak =
+              missing <= 0
+                ? `¡Medalla de ${medal} Pokémon!`
+                : missing === 1
+                  ? 'Te falta un Pokémon para esta medalla'
+                  : `Te faltan ${missing} Pokémon para esta medalla`
+          })
+
+        // Las copas, de la 1 a la última
+        const rounds = getRounds()
+        trophies.replaceChildren(
+          ...Array.from({ length: rounds }, (_, index) => {
+            const number = index + 1
+            const item = (trophyTemplate.content.firstElementChild as HTMLLIElement).cloneNode(
+              true
+            ) as HTMLLIElement
+            const button = item.querySelector('button') as HTMLButtonElement
+            const label = item.querySelector('[data-trophy-number]') as HTMLSpanElement
+
+            label.textContent = String(number)
+            button.setAttribute('aria-label', `Copa ${number}`)
+            button.dataset.speak =
+              number === 1
+                ? '¡Copa 1! Has llenado el álbum una vez'
+                : `¡Copa ${number}! Has llenado el álbum ${number} veces`
+            item.toggleAttribute('data-new', number === newTrophy)
+            return item
+          })
+        )
+        trophies.hidden = rounds === 0
+        btnRestart.hidden = !full
+      }
+
+      btnRestart.addEventListener('click', () => {
+        dialog.returnValue = ''
+        dialog.showModal()
+        speak('¿Empezamos el álbum otra vez? ¡Ganarás una copa!')
       })
 
-      progress.value = album.length
-      total.textContent = String(album.length)
-      btnCount.dataset.speak =
-        album.length === 0
-          ? 'Todavía no tienes ninguno. ¡Ve a atraparlos!'
-          : `Tienes ${album.length} Pokémon de ${progress.max}`
+      // Con «Sí», se vacía, se gana la copa y se ve salir
+      dialog.addEventListener('close', () => {
+        if (dialog.returnValue !== 'yes') return
 
-      // Las medallas salen de la cuenta: no se guardan aparte
-      document
-        .querySelectorAll<HTMLLIElement>('#album-medals [data-medal]')
-        .forEach((item) => {
-          const medal = Number(item.dataset.medal)
-          const missing = medal - album.length
-          const button = item.querySelector('button') as HTMLButtonElement
+        const trophy = restartAlbum()
+        render(trophy)
+        speak(`¡Copa ${trophy}! ¡A llenar el álbum otra vez!`)
+      })
 
-          item.toggleAttribute('data-earned', missing <= 0)
-          button.dataset.speak =
-            missing <= 0
-              ? `¡Medalla de ${medal} Pokémon!`
-              : missing === 1
-                ? 'Te falta un Pokémon para esta medalla'
-                : `Te faltan ${missing} Pokémon para esta medalla`
-        })
+      render()
     }
 
     document.addEventListener('astro:page-load', handleAlbum)
