@@ -1,0 +1,253 @@
+---
+import { Icon } from 'astro-icon/components'
+import GameHeader from '@components/games/GameHeader.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { BERRIES } from 'consts/berries'
+import { getGamePokemons } from 'services/game-pokemons'
+import { getBerryImage } from 'services/pokemon-images'
+
+const PAGE_TITLE = '¡Dale de comer!'
+
+const pokemons = await getGamePokemons()
+const berries = await Promise.all(
+  BERRIES.map(async ({ key, color }) => ({ color, image: await getBerryImage(key) }))
+)
+
+// La escena es cuadrada y es el contenedor: en cqw mide 100 × 100. El Pokémon
+// (w-3/5, top-[3%], en medio) tiene la boca en el centro de su imagen. Los
+// platos (w-1/4, bottom-[4%]) tienen su centro en x y a 83,5 de arriba; la
+// baya buena vuela de su plato a la boca (animate-berry-eat)
+const MOUTH = { x: 50, y: 33 }
+const PLATE_Y = 83.5
+const PLATES = [18.5, 50, 81.5]
+
+const plateStyle = (x: number) =>
+  `left: ${x - 12.5}%; --to-x: ${MOUTH.x - x}cqw; --to-y: ${MOUTH.y - PLATE_Y}cqw`
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <GameHeader title={PAGE_TITLE} />
+
+  {/* data-state: asking (pide una baya), eating (la baya vuela a su boca) o
+      fed (se la ha comido). El plato de la baya que se come lleva data-chosen,
+      y el juego, data-refuse mientras el Pokémon dice que no a otra */}
+  <div
+    id='feed'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-state='asking'
+    data-pokemons={JSON.stringify(pokemons)}
+    data-berries={JSON.stringify(berries)}
+  >
+    {/* El cielo, el césped y el Pokémon de pie; delante, en el césped, los
+        tres platos */}
+    <div
+      class='@container relative aspect-square rounded-2xl bg-linear-to-b from-sky-300 from-58% to-green-500 to-62%'
+    >
+      {/* Tocarlo repite lo que quiere (o, ya comido, lo contento que está) */}
+      <button
+        id='feed-pokemon'
+        class='absolute top-[3%] left-1/5 w-3/5 transition-transform active:scale-95 motion-safe:group-data-refuse:animate-pokemon-no'
+      >
+        <img
+          id='feed-image'
+          alt=''
+          class='aspect-square w-full motion-safe:group-data-[state=asking]:animate-pokemon-idle motion-safe:group-data-[state=fed]:animate-battle-cheer'
+        />
+      </button>
+
+      {/* Corazones al comérsela */}
+      <span
+        class='pointer-events-none absolute top-[2%] inset-x-[15%] flex justify-between opacity-0 group-data-[state=fed]:opacity-100 motion-safe:group-data-[state=fed]:animate-pokemon-pop'
+      >
+        <Icon
+          name='heart-full'
+          class='size-12 text-red-500'
+        />
+        <Icon
+          name='heart-full'
+          class='size-12 text-red-500'
+        />
+      </span>
+
+      {
+        PLATES.map((x) => (
+          <button
+            data-plate
+            class='absolute bottom-[4%] grid place-items-center w-1/4 aspect-square rounded-full bg-white shadow-md transition-transform active:scale-95'
+            style={plateStyle(x)}
+          >
+            <img
+              alt=''
+              class='aspect-square w-3/4 object-contain in-data-chosen:opacity-0 motion-safe:in-data-chosen:animate-berry-eat'
+            />
+          </button>
+        ))
+      }
+    </div>
+
+    <div class='grid grid-cols-2 gap-4'>
+      <button
+        id='feed-ask'
+        aria-label='Repetir'
+        class='btn-big bg-sky-600 hover:bg-sky-700'
+      >
+        <Icon
+          name='voice'
+          size={40}
+        />
+      </button>
+      <button
+        id='feed-next'
+        aria-label='Otro'
+        class='btn-big bg-orange-700 hover:bg-orange-800'
+      >
+        <Icon
+          name='arrow-right'
+          size={40}
+        />
+      </button>
+    </div>
+  </div>
+  <audio
+    id='feed-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { GameBerry } from 'interfaces/game-berry'
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
+    import { createDeck, pickSome, shuffle } from 'scripts/random'
+    import { canSpeak, playSound, speak } from 'scripts/sounds'
+
+    type State = 'asking' | 'eating' | 'fed'
+
+    const handleFeed = () => {
+      const feed = document.getElementById('feed') as HTMLDivElement
+
+      if (!feed) return
+
+      const btnPokemon = document.getElementById('feed-pokemon') as HTMLButtonElement
+      const image = document.getElementById('feed-image') as HTMLImageElement
+      const plates = [...feed.querySelectorAll<HTMLButtonElement>('[data-plate]')]
+      const cry = document.getElementById('feed-cry') as HTMLAudioElement
+      const btnAsk = document.getElementById('feed-ask') as HTMLButtonElement
+      const btnNext = document.getElementById('feed-next') as HTMLButtonElement
+
+      const pokemons: GamePokemon[] = JSON.parse(feed.dataset.pokemons ?? '[]')
+      const berries: GameBerry[] = JSON.parse(feed.dataset.berries ?? '[]')
+      // Ni el Pokémon ni el color que pide se repiten hasta que han salido
+      // todos; las otras dos bayas, cualquiera
+      const drawPokemon = createDeck(pokemons)
+      const drawWanted = createDeck(berries)
+      let pokemon: GamePokemon | undefined
+      let wanted: GameBerry | undefined
+      let shown: GameBerry[] = []
+      // Cada Pokémon es otra ronda: lo que quedara de la anterior se descarta
+      let round = 0
+
+      const getState = () => feed.dataset.state as State
+      const setState = (state: State) => {
+        feed.dataset.state = state
+      }
+
+      const ask = () => {
+        if (pokemon && wanted) speak(`¡${pokemon.spokenName} quiere la baya ${wanted.color}!`)
+      }
+
+      const sayFed = () => {
+        if (!pokemon || !wanted) return
+
+        const phrase = `¡Ñam, ñam! ¡A ${pokemon.spokenName} le encanta la baya ${wanted.color}!`
+        speechSynthesis.cancel()
+        cry.onended = () => speak(phrase)
+        playSound(cry)
+      }
+
+      // Mientras se la come, nada
+      const repeat = () => {
+        if (getState() === 'asking') ask()
+        if (getState() === 'fed') sayFed()
+      }
+
+      // Un Pokémon, el color que pide y su baya con otras dos, en un orden
+      // cualquiera
+      const showRound = () => {
+        round++
+        cry.onended = null
+        speechSynthesis.cancel()
+        delete feed.dataset.refuse
+
+        const current = drawPokemon()
+        const currentWanted = drawWanted()
+        pokemon = current
+        wanted = currentWanted
+        shown = shuffle([
+          currentWanted,
+          ...pickSome(
+            berries.filter((berry) => berry !== currentWanted),
+            plates.length - 1
+          )
+        ])
+
+        image.src = current.image
+        image.alt = `Imagen de ${current.name}`
+        btnPokemon.setAttribute('aria-label', current.name)
+        plates.forEach((plate, index) => {
+          const img = plate.querySelector('img') as HTMLImageElement
+          img.src = shown[index].image
+          plate.setAttribute('aria-label', `Baya ${shown[index].color}`)
+          delete plate.dataset.chosen
+        })
+        cry.src = current.cry
+        setState('asking')
+      }
+
+      const choose = async (plate: HTMLButtonElement, berry: GameBerry) => {
+        if (!pokemon || !wanted || getState() !== 'asking') return
+
+        const thisRound = round
+
+        // La buena: vuela a su boca, se la come y se pone contento
+        if (berry === wanted) {
+          plate.dataset.chosen = ''
+          setState('eating')
+          speechSynthesis.cancel()
+          await animationsEnd(feed)
+          if (thisRound !== round) return
+
+          setState('fed')
+          sayFed()
+          return
+        }
+
+        // Otra: dice que no con la cabeza, y la voz dice de qué color es la
+        // que ha tocado y cuál quiere. No se pierde
+        if ('refuse' in feed.dataset) return
+
+        feed.dataset.refuse = ''
+        speak(`Esa es la ${berry.color}. ¡${pokemon.spokenName} quiere la ${wanted.color}!`)
+        await animationsEnd(btnPokemon)
+        if (thisRound !== round) return
+
+        delete feed.dataset.refuse
+      }
+
+      plates.forEach((plate, index) =>
+        plate.addEventListener('click', () => choose(plate, shown[index]))
+      )
+      btnPokemon.addEventListener('click', repeat)
+      btnAsk.addEventListener('click', repeat)
+      btnNext.addEventListener('click', () => {
+        showRound()
+        ask()
+      })
+      showRound()
+      // Al cargar, solo si ya se ha tocado la página (al venir de /juegos/):
+      // si no, el móvil no deja hablar
+      if (canSpeak()) ask()
+    }
+
+    document.addEventListener('astro:page-load', handleFeed)
+  </script>
+</MainLayout>

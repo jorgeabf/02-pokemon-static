@@ -6,6 +6,8 @@ import { POKEMON_IDS } from 'services/pokemon-species'
 // copian a la web, para servirlos desde aquí y poder jugar sin conexión
 const SPRITES_URL =
   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+const ITEMS_URL =
+  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items'
 const CRIES_URL =
   'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest'
 const ANIMATED_PATH = 'versions/generation-v/black-white/animated'
@@ -76,6 +78,18 @@ const getPokemonDrawing = async (id: number) => {
     src: `${SPRITES_URL}/other/dream-world/${id}.svg`,
     width: DRAWING_SIZE,
     height: DRAWING_SIZE
+  })
+  return src
+}
+
+// Una baya (consts/berries) con el dibujo de dream-world: 90 px y ~3 KB, en el
+// mismo estilo que los dibujos de los Pokémon (el de items/ mide 30 px). En
+// AVIF y a su tamaño, que cambia un poco de una a otra
+export const getBerryImage = async (key: string) => {
+  const { src } = await getImage({
+    src: `${ITEMS_URL}/dream-world/${key}-berry.png`,
+    inferSize: true,
+    format: 'avif'
   })
   return src
 }

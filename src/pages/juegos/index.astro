@@ -4,12 +4,14 @@ import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
-import { getPokemonDrawings } from 'services/pokemon-images'
+import { getBerryImage, getPokemonDrawings } from 'services/pokemon-images'
 
 const PAGE_TITLE = 'Juegos'
 
 // Pikachu, Charizard, Charmander, Snorlax, Squirtle y Bulbasaur
 const drawings = await getPokemonDrawings([25, 6, 4, 143, 7, 1])
+// La baya azul de ¡Dale de comer!
+const berry = await getBerryImage('oran')
 
 // Cada juego es un dibujo de su pantalla, para que Ibai lo reconozca sin leer.
 // En 3 columnas, como ¿Dónde viven?: caben 12 juegos sin scroll
@@ -254,6 +256,36 @@ const tileClass =
             height='20'
             class='absolute left-[8%] bottom-[8%] aspect-square w-1/4 object-contain object-bottom'
           />
+        </span>
+      </a>
+    </li>
+    <li>
+      <a
+        href='/juegos/comer/'
+        aria-label='¡Dale de comer!'
+        data-speak='¡Dale de comer!'
+        class:list={[tileClass, 'bg-linear-to-b from-sky-300 from-58% to-green-500 to-62%']}
+      >
+        {/* Snorlax, el más comilón, y delante una baya en su plato */}
+        <span class='relative aspect-square w-full'>
+          <img
+            src={drawings[143]}
+            alt=''
+            width='60'
+            height='60'
+            class='absolute top-0 right-0 aspect-square w-3/4 object-contain'
+          />
+          <span
+            class='absolute bottom-0 left-0 grid place-items-center size-1/2 rounded-full bg-white shadow-md'
+          >
+            <img
+              src={berry}
+              alt=''
+              width='30'
+              height='30'
+              class='aspect-square w-3/4 object-contain'
+            />
+          </span>
         </span>
       </a>
     </li>

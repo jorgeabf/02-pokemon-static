@@ -30,6 +30,9 @@
   /* ¿Dónde está…?: el que no es niega con la cabeza (el que es salta con
      battle-cheer) */
   --animate-pokemon-no: pokemon-no 0.5s ease-in-out;
+  /* ¡Dale de comer!: la baya buena vuela de su plato a la boca del Pokémon
+     (--to-x y --to-y los pone la página) y allí se la come */
+  --animate-berry-eat: berry-eat 0.8s ease-in-out;
   /* Confeti (components/shared/Confetti.astro): cada trozo cae dando vueltas
      como un papel. Cada tira cambia el retraso y la duración de la caída
      (hasta 2,75 s): las vueltas duran 3 s, sin ser infinitas */
@@ -210,6 +213,25 @@
     40%,
     80% {
       rotate: 12deg;
+    }
+  }
+
+  /* Con from explícito: en ese momento ya tiene opacity-0 debajo */
+  @keyframes berry-eat {
+    from {
+      opacity: 1;
+      translate: 0 0;
+      scale: 1;
+    }
+    70% {
+      opacity: 1;
+      translate: var(--to-x) var(--to-y);
+      scale: 0.6;
+    }
+    to {
+      opacity: 0;
+      translate: var(--to-x) var(--to-y);
+      scale: 0;
     }
   }
 
