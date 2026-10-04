@@ -42,8 +42,9 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
     <span><span id='album-total'>0</span> de {pokemons.length}</span>
   </button>
 
-  {/* Las que faltan, en sombra y sin enlace (un <a> sin href no se puede tocar);
-      el script colorea las atrapadas y las enlaza a su ficha */}
+  {/* Las que faltan, en sombra, llevan a ¡Atrápalo! con ese Pokémon (?id=),
+      que al entrar dice cuál es; el script colorea las atrapadas y las
+      enlaza a su ficha */}
   <ul
     id='album-grid'
     aria-label='Pokémon del álbum'
@@ -56,10 +57,12 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
           data-id={id}
         >
           <a
+            href={`/juegos/atrapa/?id=${id}`}
+            aria-label='¿Quién será?'
             data-name={name}
             data-label={spanishName}
             data-spoken={spokenName}
-            class='block p-1 rounded-xl bg-slate-900 border border-slate-600 transition-transform group-data-captured:active:scale-95'
+            class='block p-1 rounded-xl bg-slate-900 border border-slate-600 transition-transform active:scale-95'
           >
             <img
               src={drawings[id]}

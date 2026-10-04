@@ -131,8 +131,15 @@ const pokemons = await getWildPokemons()
         playSound(cry)
       }
 
-      // Mejor uno que aún no esté en el álbum; si ya están todos, cualquiera
-      const showPokemon = ({ announce }: { announce: boolean }) => {
+      // El que se pida o, si no, mejor uno que aún no esté en el álbum; si ya
+      // están todos, cualquiera
+      const showPokemon = ({
+        announce,
+        wanted
+      }: {
+        announce: boolean
+        wanted?: WildPokemon
+      }) => {
         round++
         delete wild.dataset.celebrate
         cry.onended = null
@@ -141,7 +148,7 @@ const pokemons = await getWildPokemons()
         const album = getAlbum()
         const missing = pokemons.filter(({ id }) => !album.includes(id))
         const previous = current
-        current = pickOther(missing.length > 0 ? missing : pokemons, previous)
+        current = wanted ?? pickOther(missing.length > 0 ? missing : pokemons, previous)
 
         // El fondo es el degradado de su hábitat
         if (previous) scene.classList.remove(...previous.tile.split(' '))
@@ -190,9 +197,13 @@ const pokemons = await getWildPokemons()
 
       scene.addEventListener('click', throwBall)
       btnNext.addEventListener('click', () => showPokemon({ announce: true }))
-      // Al cargar, solo si ya se ha tocado la página (al venir de /juegos/):
-      // si no, el móvil no deja hablar
-      showPokemon({ announce: canSpeak() })
+      // Desde el álbum, al tocar uno en sombra (?id=25), sale primero ese
+      const wantedId = Number(new URLSearchParams(location.search).get('id'))
+      const wanted = pokemons.find(({ id }) => id === wantedId)
+
+      // Al cargar, solo si ya se ha tocado la página (al venir de /juegos/ o
+      // del álbum): si no, el móvil no deja hablar
+      showPokemon({ announce: canSpeak(), wanted })
     }
 
     document.addEventListener('astro:page-load', handleWild)
