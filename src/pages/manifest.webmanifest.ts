@@ -10,7 +10,10 @@ export const GET: APIRoute = () =>
     short_name: SITE_TITLE,
     description: SITE_DESCRIPTION,
     lang: 'es',
-    start_url: '/pokemons/1/',
+    // Sin id, Chrome identifica la app instalada por su start_url, que era
+    // /pokemons/1/: fijándolo, cambiar start_url no la convierte en otra app
+    id: '/pokemons/1/',
+    start_url: '/pokemons/',
     scope: '/',
     display: 'standalone',
     background_color: THEME_COLOR,

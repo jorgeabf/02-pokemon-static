@@ -5,9 +5,11 @@ import { getSpanishNames } from 'services/pokemon-species'
 interface Props {
   url: string
   name: string
+  // En las listas largas, solo las de la primera pantalla van con eager
+  loading?: 'eager' | 'lazy'
 }
 
-const { url, name } = Astro.props
+const { url, name, loading = 'lazy' } = Astro.props
 const id = url.split('/').at(-2) ?? ''
 const spanishName = (await getSpanishNames())[name] ?? name
 
@@ -18,14 +20,17 @@ const image = await getPokemonImage(id)
   <article class='bg-slate-900 border border-slate-600 p-4 rounded-2xl relative'>
     <slot />
 
+    {/* Pasa a la imagen de la ficha (transition:name allí) con el mismo
+        view-transition-name. Aquí va en style y no con transition:name, que
+        añade 2,4 KB de <style> por tarjeta: 358 KB con las 151 de la lista */}
     <img
-      transition:name={`${name}-image`}
+      style={`view-transition-name: ${name}-image`}
       src={image}
       alt={`Imagen de ${spanishName}`}
       class='mx-auto'
       width='180'
       height='180'
-      loading='eager'
+      loading={loading}
       decoding='async'
     />
 
