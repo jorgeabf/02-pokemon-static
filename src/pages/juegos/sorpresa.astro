@@ -106,7 +106,6 @@ const pokemons = await getGamePokemons()
         delete surprise.dataset.shaking
         delete surprise.dataset.open
         cry.onended = null
-        speechSynthesis.cancel()
 
         // La imagen y el grito se cargan mientras la Pokéball está cerrada
         image.src = current.image
@@ -140,7 +139,12 @@ const pokemons = await getGamePokemons()
       }
 
       btnOpen.addEventListener('click', openBall)
-      btnNext.addEventListener('click', prepareBall)
+      // Con «Otra» se corta lo que dijera la anterior. Al entrar no: sigue el
+      // nombre del juego, que dice su casilla de /juegos/
+      btnNext.addEventListener('click', () => {
+        speechSynthesis.cancel()
+        prepareBall()
+      })
       prepareBall()
     }
 

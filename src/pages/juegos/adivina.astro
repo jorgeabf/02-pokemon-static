@@ -76,12 +76,13 @@ const pokemons = await getGamePokemons()
       const question = game.dataset.question ?? ''
       let current: GamePokemon | undefined
 
+      // La voz no se corta aquí: al entrar sigue la pregunta que dice la
+      // casilla de /juegos/, y con «Otro» la corta la pregunta nueva
       const showRandomPokemon = () => {
         current = drawPokemon()
 
         delete game.dataset.revealed
         cry.onended = null
-        speechSynthesis.cancel()
 
         image.src = current.image
         image.alt = 'Pokémon misterioso'

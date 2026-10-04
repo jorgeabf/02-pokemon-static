@@ -126,7 +126,6 @@ const pokemons = await getEvolvingPokemons()
         delete evolve.dataset.evolving
         delete evolve.dataset.evolved
         cry.onended = null
-        speechSynthesis.cancel()
 
         setTaps(0)
         show(first)
@@ -172,7 +171,12 @@ const pokemons = await getEvolvingPokemons()
       }
 
       btnPokemon.addEventListener('click', tapPokemon)
-      btnNext.addEventListener('click', preparePokemon)
+      // Con «Otro» se corta lo que dijera el anterior. Al entrar no: sigue el
+      // nombre del juego, que dice su casilla de /juegos/
+      btnNext.addEventListener('click', () => {
+        speechSynthesis.cancel()
+        preparePokemon()
+      })
       preparePokemon()
     }
 
