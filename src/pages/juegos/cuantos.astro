@@ -9,27 +9,47 @@ const PAGE_TITLE = '¿Cuántos hay?'
 
 const pokemons = await getGamePokemons()
 
-// Hasta 20: un sitio para cada uno, en 5 columnas
+// Hasta 20: un sitio para cada uno, en 5 columnas. En las sumas, un grupo en
+// las 2 de la izquierda y otro en las 2 de la derecha (hasta 8 + 8), y en la
+// del medio, el «+»
 const PLACES = 20
 ---
 
 <MainLayout title={PAGE_TITLE}>
   <GameHeader title={PAGE_TITLE} />
 
-  {/* data-state: asking (preguntando) o found (acertado). Los sitios que no
-      tienen Pokémon llevan data-empty y los ya contados, data-counted; la
+  {/* data-state: asking (preguntando) o found (acertado). data-mode: count
+      (contar) o sum (sumar dos grupos, una de cada 3 rondas). Los sitios que
+      no tienen Pokémon llevan data-empty y los ya contados, data-counted; la
       respuesta buena lleva data-right y la que se toca sin serlo, data-wrong
-      mientras niega. Si acierta a la primera, el Pokémon va al álbum
-      (AlbumPrize) */}
+      mientras niega. Si acierta a la primera, el Pokémon (o los dos) va al
+      álbum (AlbumPrize) */}
   <div
     id='count'
     class='group relative grid gap-6 max-w-sm mx-auto'
     data-state='asking'
+    data-mode='count'
     data-pokemons={JSON.stringify(pokemons)}
   >
+    {/* La suma en cifras (3 + 2), solo en las de sumar. Guarda su alto
+        también al contar: si no, los botones de abajo cambiarían de sitio de
+        una ronda a otra */}
+    <p
+      id='count-sum'
+      class='min-h-10 text-center text-4xl font-black'
+    >
+    </p>
+
     {/* El prado. Los sitios vacíos guardan su hueco (invisible): el prado
-        mide siempre lo mismo */}
-    <div class='grid grid-cols-5 gap-2 p-3 rounded-2xl bg-linear-to-b from-lime-200 to-lime-400'>
+        mide siempre lo mismo. Al sumar, el «+» en la columna del medio, que
+        queda vacía */}
+    <div class='relative grid grid-cols-5 gap-2 p-3 rounded-2xl bg-linear-to-b from-lime-200 to-lime-400'>
+      <span
+        aria-hidden='true'
+        class='pointer-events-none absolute inset-0 hidden place-items-center text-6xl font-black text-lime-800 group-data-[mode=sum]:grid'
+      >
+        +
+      </span>
       {
         Array.from({ length: PLACES }, () => (
           <button
@@ -96,14 +116,24 @@ const PLACES = 20
     import type { GamePokemon } from 'interfaces/game-pokemon'
     import { clearAlbumReward, rewardAlbum } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
-    import { createDeck, pickSome } from 'scripts/random'
+    import { createDeck, drawDistinct, pickSome } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
 
     type State = 'asking' | 'found'
+    type Mode = 'count' | 'sum'
+    // Unos cuantos del mismo Pokémon. Al contar hay un grupo; al sumar, dos
+    type Group = { pokemon: GamePokemon; size: number }
 
     // Las respuestas que no son están cerca de la buena, a 3 como mucho: para
     // acertar hay que contar
     const NEAR = 3
+    // Una de cada 3 rondas es una suma
+    const SUM_EVERY = 3
+    // El prado tiene 5 columnas (grid-cols-5)
+    const COLUMNS = 5
+
+    // «Hay un Pikachu», y no «uno»
+    const sayNumber = (n: number) => (n === 1 ? 'un' : String(n))
 
     const handleCount = () => {
       const count = document.getElementById('count') as HTMLDivElement
@@ -112,17 +142,27 @@ const PLACES = 20
 
       const cells = [...count.querySelectorAll<HTMLButtonElement>('[data-cell]')]
       const answers = [...count.querySelectorAll<HTMLButtonElement>('[data-answer]')]
+      const sum = document.getElementById('count-sum') as HTMLParagraphElement
       const cry = document.getElementById('count-cry') as HTMLAudioElement
       const btnAsk = document.getElementById('count-ask') as HTMLButtonElement
       const btnNext = document.getElementById('count-next') as HTMLButtonElement
       const prize = count.querySelector('[data-album-prize]') as HTMLElement
 
+      // Al sumar, un grupo en las 2 columnas de la izquierda y otro en las 2
+      // de la derecha; la del medio, vacía, es la del «+»
+      const column = (cell: HTMLButtonElement) => cells.indexOf(cell) % COLUMNS
+      const left = cells.filter((cell) => column(cell) < 2)
+      const right = cells.filter((cell) => column(cell) > 2)
+
       const pokemons: GamePokemon[] = JSON.parse(count.dataset.pokemons ?? '[]')
-      // Ni el Pokémon ni cuántos hay (de 1 a uno por sitio) se repiten hasta
-      // que han salido todos
+      // Ni el Pokémon, ni cuántos hay (de 1 a uno por sitio), ni la suma (de
+      // 1 + 1 a 8 + 8) se repiten hasta que han salido todos
       const drawPokemon = createDeck(pokemons)
       const drawTotal = createDeck(cells.map((_, index) => index + 1))
-      let pokemon: GamePokemon | undefined
+      const drawSum = createDeck(
+        left.flatMap((_, a) => right.map((_, b): [number, number] => [a + 1, b + 1]))
+      )
+      let groups: Group[] = []
       let total = 0
       let counted = 0
       let choices: number[] = []
@@ -137,22 +177,33 @@ const PLACES = 20
       }
 
       const ask = () => {
-        if (pokemon) speak(`¿Cuántos ${pokemon.spokenName} hay?`)
+        const [first, second] = groups
+
+        if (!first) return
+
+        speak(
+          second
+            ? `¿Cuántos son ${sayNumber(first.size)} ${first.pokemon.spokenName} y ${sayNumber(second.size)} ${second.pokemon.spokenName}?`
+            : `¿Cuántos ${first.pokemon.spokenName} hay?`
+        )
       }
 
-      // «Hay un Pikachu», y no «uno». reward: lo que añade el álbum, si es
-      // nuevo o trae medalla
+      // reward: lo que añade el álbum, si es nuevo o trae medalla
       const sayFound = (reward = '') => {
-        if (!pokemon) return
+        const [first, second] = groups
 
-        const phrase = `¡Muy bien! ¡Hay ${total === 1 ? 'un' : total} ${pokemon.spokenName}!${reward}`
+        if (!first) return
+
+        const phrase = second
+          ? `¡Muy bien! ¡${first.size} y ${second.size} son ${total}!${reward}`
+          : `¡Muy bien! ¡Hay ${sayNumber(total)} ${first.pokemon.spokenName}!${reward}`
         speechSynthesis.cancel()
         cry.onended = () => speak(phrase)
         playSound(cry)
       }
 
-      // Unos cuantos del mismo Pokémon, en sitios al azar, y las respuestas:
-      // la buena y otras dos cerca, de menor a mayor
+      // Cada grupo, en sitios al azar de su zona (al contar, todo el prado), y
+      // las respuestas: la buena y otras dos cerca, de menor a mayor
       const showRound = () => {
         round++
         missed = false
@@ -160,19 +211,38 @@ const PLACES = 20
         cry.onended = null
         speechSynthesis.cancel()
 
-        const current = drawPokemon()
-        pokemon = current
-        total = drawTotal()
+        const mode: Mode = round % SUM_EVERY === 0 ? 'sum' : 'count'
+        let areas: HTMLButtonElement[][]
+
+        if (mode === 'sum') {
+          const [a, b] = drawDistinct(drawPokemon, 2)
+          const [sizeA, sizeB] = drawSum()
+          groups = [
+            { pokemon: a, size: sizeA },
+            { pokemon: b, size: sizeB }
+          ]
+          areas = [left, right]
+        } else {
+          groups = [{ pokemon: drawPokemon(), size: drawTotal() }]
+          areas = [cells]
+        }
+        total = groups.reduce((sum, { size }) => sum + size, 0)
         counted = 0
 
-        const places = new Set(pickSome(cells, total))
         cells.forEach((cell) => {
-          const img = cell.querySelector('img') as HTMLImageElement
-          img.src = current.image
-          cell.setAttribute('aria-label', current.name)
-          cell.toggleAttribute('data-empty', !places.has(cell))
+          cell.dataset.empty = ''
           delete cell.dataset.counted
         })
+        groups.forEach(({ pokemon, size }, index) =>
+          pickSome(areas[index], size).forEach((cell) => {
+            const img = cell.querySelector('img') as HTMLImageElement
+            img.src = pokemon.image
+            cell.setAttribute('aria-label', pokemon.name)
+            delete cell.dataset.empty
+          })
+        )
+        count.dataset.mode = mode
+        sum.textContent = mode === 'sum' ? `${groups[0].size} + ${groups[1].size}` : ''
 
         const near = cells
           .map((_, index) => index + 1)
@@ -183,13 +253,13 @@ const PLACES = 20
           answer.toggleAttribute('data-right', choices[index] === total)
           delete answer.dataset.wrong
         })
-        cry.src = current.cry
+        cry.src = groups[0].pokemon.cry
         setState('asking')
       }
 
       // Contar con el dedo: cada uno que se toca se queda con su número y la
       // voz lo dice. Uno ya contado vuelve a decir el suyo. Como no se repiten,
-      // el último número es cuántos ha contado
+      // el último número es cuántos ha contado (al sumar, los de los dos lados)
       const countCell = (cell: HTMLButtonElement) => {
         if (getState() !== 'asking') return
 
@@ -210,10 +280,10 @@ const PLACES = 20
           return
         }
 
-        // A la primera, va al álbum
+        // A la primera, van al álbum (al sumar, los dos)
         if (n === total) {
           setState('found')
-          sayFound(missed || !pokemon ? '' : rewardAlbum(prize, [pokemon.id]))
+          sayFound(missed ? '' : rewardAlbum(prize, groups.map(({ pokemon }) => pokemon.id)))
           return
         }
 
