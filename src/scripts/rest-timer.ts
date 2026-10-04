@@ -64,6 +64,11 @@ const fallAsleep = () => {
 
   if (!lock || lock.open) return
 
+  // Si estaba abierta la palabra del adulto (Ibai ha mantenido pulsada la
+  // Pokéball y la ha dejado, o el adulto está poniendo el tiempo), se
+  // cierra: quedaría debajo de Snorlax, sin poder tocarse, y mantener
+  // pulsado a Snorlax no la abriría encima porque ya está abierta
+  adultDialog()?.close()
   lock.showModal()
   if (canSpeak()) speak('¡A descansar! Snorlax se ha dormido')
 }
