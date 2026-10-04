@@ -42,8 +42,8 @@ Publicada en <https://pokemons-ibai.netlify.app>.
 - **Solid**: solo en Favoritos.
 - **astro-icon**: iconos de Phosphor, sacados de Iconify.
 - **Datos de [PokeAPI](https://pokeapi.co)**, que se piden al compilar (`src/services`): nombres en español, descripciones, pesos, alturas, tipos, hábitats y evoluciones.
-- **Imágenes y sonidos:** las imágenes se copian a la web en AVIF, y los gritos y los GIF animados también (`/cries/[id].ogg`, `/animated/[id].gif`). A GitHub solo se piden las imágenes brillantes.
-- **Sin conexión:** un service worker propio (`integrations/service-worker`). Al compilar escribe `dist/sw.js` con la lista de todos los archivos (unos 830, 19 MB) y una huella de cada uno, y en cada versión el móvil solo baja lo que ha cambiado. Mientras guarda, una barra debajo del menú enseña cuánto lleva.
+- **Imágenes y sonidos:** las imágenes, también las brillantes, se copian a la web en AVIF, y los gritos y los GIF animados también (`/cries/[id].ogg`, `/animated/[id].gif`, `/animated/shiny/[id].gif`). Mientras se usa, la app no pide nada a GitHub.
+- **Sin conexión:** un service worker propio (`integrations/service-worker`). Al compilar escribe `dist/sw.js` con la lista de todos los archivos (unos 1130, 25 MB) y una huella de cada uno, y en cada versión el móvil solo baja lo que ha cambiado. Mientras guarda, una barra debajo del menú enseña cuánto lleva.
 - **Lo de Ibai** (álbum, copas, favoritos, temporizador) se guarda en el `localStorage` del móvil.
 - **La voz** es `speechSynthesis` en español. Sin conexión solo habla si Android tiene los datos de voz en español instalados.
 

@@ -22,22 +22,22 @@ const DRAWING_SIZE = 96
 export const getRemoteImageUrl = (id: number | string) =>
   `${SPRITES_URL}/other/official-artwork/${id}.png`
 
-// Lo brillante se sigue pidiendo a GitHub: no se guarda al instalar la app,
-// sino la primera vez que se ve (ver integrations/service-worker/sw.js)
-export const getShinyImageUrl = (id: number | string) =>
+const getRemoteShinyImageUrl = (id: number | string) =>
   `${SPRITES_URL}/other/official-artwork/shiny/${id}.png`
-
-export const getShinyAnimatedUrl = (id: number | string) =>
-  `${SPRITES_URL}/${ANIMATED_PATH}/shiny/${id}.gif`
 
 // Los originales que copian src/pages/animated/ y src/pages/cries/
 export const getRemoteAnimatedUrl = (id: number | string) =>
   `${SPRITES_URL}/${ANIMATED_PATH}/${id}.gif`
 
+export const getRemoteShinyAnimatedUrl = (id: number | string) =>
+  `${SPRITES_URL}/${ANIMATED_PATH}/shiny/${id}.gif`
+
 export const getRemoteCryUrl = (id: number | string) => `${CRIES_URL}/${id}.ogg`
 
 // Las copias en la web
 export const getAnimatedUrl = (id: number | string) => `/animated/${id}.gif`
+
+export const getShinyAnimatedUrl = (id: number | string) => `/animated/shiny/${id}.gif`
 
 export const getCryUrl = (id: number | string) => `/cries/${id}.ogg`
 
@@ -60,17 +60,24 @@ export const getCopiedFilePaths = async (getUrl: (id: number) => string) => {
   }))
 }
 
-// La imagen grande en AVIF y a su tamaño original, la misma para tarjetas,
-// ficha y juegos: pesa ~12 KB (el PNG, ~140) y en el móvil se ve nítida
-export const getPokemonImage = async (id: number | string) => {
+// La imagen grande en AVIF y a su tamaño original: pesa ~12 KB (el PNG,
+// ~140) y en el móvil se ve nítida
+const toAvif = async (url: string) => {
   const { src } = await getImage({
-    src: getRemoteImageUrl(id),
+    src: url,
     width: IMAGE_SIZE,
     height: IMAGE_SIZE,
     format: 'avif'
   })
   return src
 }
+
+// La misma para tarjetas, ficha y juegos
+export const getPokemonImage = (id: number | string) => toAvif(getRemoteImageUrl(id))
+
+// La brillante de la ficha, también en la web: «Brillante» funciona sin
+// conexión aunque no se haya visto antes
+export const getShinyImage = (id: number | string) => toAvif(getRemoteShinyImageUrl(id))
 
 // El dibujo SVG de dream-world, copiado tal cual (Astro no rasteriza SVG)
 const getPokemonDrawing = async (id: number) => {

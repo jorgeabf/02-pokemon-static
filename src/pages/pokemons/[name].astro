@@ -13,7 +13,7 @@ import {
   getPokemonImage,
   getRemoteImageUrl,
   getShinyAnimatedUrl,
-  getShinyImageUrl
+  getShinyImage
 } from 'services/pokemon-images'
 import {
   getDescriptions,
@@ -80,7 +80,7 @@ const sizeScene = `--tallest: ${Math.max(height, IBAI_HEIGHT)}; --width: ${CHILD
 
 const audioSrc = getCryUrl(id)
 const imageSrc = await getPokemonImage(id)
-const shinyImageSrc = getShinyImageUrl(id)
+const shinyImageSrc = await getShinyImage(id)
 const animatedSrc = getAnimatedUrl(id)
 const shinyAnimatedSrc = getShinyAnimatedUrl(id)
 ---
