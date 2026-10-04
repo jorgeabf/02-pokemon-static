@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
+import Medal from '@components/shared/Medal.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getBerryImage, getPokemonDrawings } from 'services/pokemon-images'
@@ -14,7 +15,8 @@ const drawings = await getPokemonDrawings([25, 6, 4, 143, 7, 1])
 const berry = await getBerryImage('oran')
 
 // Cada juego es un dibujo de su pantalla, para que Ibai lo reconozca sin leer.
-// En 3 columnas, como ¿Dónde viven?: caben 12 juegos sin scroll
+// En 3 columnas, como ¿Dónde viven?: los 12, en dos bloques, caben sin scroll
+// (a 320×640, la última casilla acaba en 595)
 const tileClass =
   'grid place-items-center aspect-square p-3 rounded-2xl transition-transform active:scale-95'
 ---
@@ -24,314 +26,345 @@ const tileClass =
     <PageTitle>{PAGE_TITLE}</PageTitle>
   </PageHeader>
 
-  <ul class='grid grid-cols-3 gap-4 max-w-md mx-auto'>
-    <li>
-      <a
-        href='/juegos/adivina/'
-        aria-label='¿Quién es ese Pokémon?'
-        data-speak='¿Quién es ese Pokémon?'
-        class:list={[tileClass, 'bg-radial from-yellow-200 to-sky-500']}
+  {/* Dos bloques de 6, de 2 filas cada uno. Primero, los que llenan el álbum
+      y dan medallas (rewardAlbum en scripts/album.ts), con una medalla
+      encima que, al tocarla, dice para qué son; debajo, tras una raya, los
+      demás */}
+  <section
+    aria-label='Juegos con medalla'
+    class='max-w-md mx-auto'
+  >
+    <h2 class='grid justify-items-center mb-2'>
+      <button
+        aria-label='Juegos con medalla'
+        data-speak='¡Con estos juegos llenas tu álbum y ganas medallas!'
+        class='w-8 transition-transform active:scale-95'
       >
-        {/* Silueta sobre el mismo fondo que el juego */}
-        <img
-          src={drawings[25]}
-          alt=''
-          width='120'
-          height='120'
-          class='aspect-square w-full object-contain brightness-0'
-        />
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/sorpresa/'
-        aria-label='Pokébola sorpresa'
-        data-speak='Pokébola sorpresa'
-        class:list={[tileClass, 'bg-radial from-slate-600 to-slate-900']}
-      >
-        {/* La Pokéball del juego, abriéndose y con un destello */}
-        <span class='relative aspect-square w-full'>
-          <Pokeball
-            class='absolute bottom-0 left-0 size-5/6'
-            topClass='-rotate-30'
-          />
+        <Medal class='w-full'>
           <Icon
             name='sparkle'
-            class='absolute top-0 right-0 size-1/2 text-yellow-400'
+            class='size-1/2'
           />
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/evoluciona/'
-        aria-label='¡Evoluciona!'
-        data-speak='¡Evoluciona!'
-        class:list={[tileClass, 'bg-radial from-sky-200 to-indigo-700']}
-      >
-        {/* Charmander y, detrás, en blanco como al evolucionar, Charizard */}
-        <span class='relative aspect-square w-full'>
-          <img
-            src={drawings[6]}
-            alt=''
-            width='96'
-            height='96'
-            class='absolute top-0 right-0 aspect-square w-4/5 object-contain brightness-0 invert'
-          />
-          <img
-            src={drawings[4]}
-            alt=''
-            width='60'
-            height='60'
-            class='absolute bottom-0 left-0 aspect-square w-1/2 object-contain'
-          />
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/atrapa/'
-        aria-label='¡Atrápalo!'
-        data-speak='¡Atrápalo!'
-        class:list={[tileClass, 'bg-linear-to-b from-green-600 to-green-800']}
-      >
-        {/* Pikachu en el bosque y la Pokéball volando hacia él */}
-        <span class='relative aspect-square w-full'>
-          <img
-            src={drawings[25]}
-            alt=''
-            width='80'
-            height='80'
-            class='absolute top-0 right-0 aspect-square w-3/4 object-contain'
-          />
-          <Pokeball class='absolute bottom-0 left-0 size-1/3 -rotate-30' />
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/balanza/'
-        aria-label='¿Cuál pesa más?'
-        data-speak='¿Cuál pesa más?'
-        class:list={[tileClass, 'bg-linear-to-b from-sky-400 to-sky-100']}
-      >
-        {/* El balancín inclinado: Snorlax abajo y Pikachu arriba */}
-        <span class='relative aspect-square w-full'>
-          <span
-            class='absolute left-1/2 top-[64%] w-1/4 aspect-square -translate-x-1/2 bg-amber-900 [clip-path:polygon(50%_0,100%_100%,0_100%)]'
-          ></span>
-          <span
-            class='absolute inset-x-0 top-[62%] h-1.5 rotate-12 rounded-full bg-amber-800'
-          ></span>
-          <img
-            src={drawings[143]}
-            alt=''
-            width='60'
-            height='60'
-            class='absolute right-0 bottom-[28%] aspect-square w-1/2 object-contain'
-          />
-          <img
-            src={drawings[25]}
-            alt=''
-            width='40'
-            height='40'
-            class='absolute left-[5%] bottom-[48%] aspect-square w-1/3 object-contain'
-          />
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/combate/'
-        aria-label='Fuego, agua, planta'
-        data-speak='Fuego, agua, planta'
-        class:list={[tileClass, 'bg-linear-to-b from-sky-300 to-lime-200']}
-      >
-        {/* Los tres iniciales en triángulo, como piedra, papel o tijera */}
-        <span class='relative aspect-square w-full'>
-          {
-            [
-              { id: 4, position: 'top-0 left-1/4' },
-              { id: 7, position: 'bottom-0 left-0' },
-              { id: 1, position: 'bottom-0 right-0' }
-            ].map(({ id, position }) => (
-              <img
-                src={drawings[id]}
-                alt=''
-                width='54'
-                height='54'
-                class:list={['absolute aspect-square w-1/2 object-contain', position]}
-              />
-            ))
-          }
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/donde-esta/'
-        aria-label='¿Dónde está…?'
-        data-speak='¿Dónde está…?'
-        class:list={[tileClass, 'bg-radial from-white to-sky-300']}
-      >
-        {/* La voz que pregunta y tres Pokémon: el que pide, Pikachu, rodeado */}
-        <span class='grid grid-cols-2 gap-1 aspect-square w-full'>
-          <Icon
-            name='voice'
-            class='size-full text-sky-700'
-          />
-          <img
-            src={drawings[25]}
-            alt=''
-            width='36'
-            height='36'
-            class='aspect-square w-full object-contain rounded-full ring-2 ring-orange-600'
-          />
-          {
-            [1, 7].map((id) => (
-              <img
-                src={drawings[id]}
-                alt=''
-                width='36'
-                height='36'
-                class='aspect-square w-full object-contain'
-              />
-            ))
-          }
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/parejas/'
-        aria-label='Parejas'
-        data-speak='Parejas'
-        class:list={[tileClass, 'bg-linear-to-b from-amber-200 to-amber-400']}
-      >
-        {/* Cuatro cartas: dos tapadas y la pareja de Pikachu */}
-        <span class='grid grid-cols-2 gap-1.5 aspect-square w-full'>
-          {
-            [false, true, true, false].map((up) =>
-              up ? (
-                <span class='grid place-items-center p-0.5 rounded-md bg-white'>
-                  <img
-                    src={drawings[25]}
-                    alt=''
-                    width='30'
-                    height='30'
-                    class='aspect-square w-full object-contain'
-                  />
-                </span>
-              ) : (
-                <span class='grid place-items-center rounded-md bg-radial from-indigo-400 to-indigo-700'>
-                  <Pokeball class='w-3/5' />
-                </span>
-              )
-            )
-          }
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/altura/'
-        aria-label='¿Cuál es más alto?'
-        data-speak='¿Cuál es más alto?'
-        class:list={[tileClass, 'bg-linear-to-b from-violet-400 to-pink-200']}
-      >
-        {/* Charizard y Pikachu de pie en la hierba, cada uno a su altura */}
-        <span class='relative aspect-square w-full'>
-          <span class='absolute inset-x-0 bottom-0 h-1/6 rounded-full bg-green-600'></span>
-          <img
-            src={drawings[6]}
-            alt=''
-            width='45'
-            height='45'
-            class='absolute right-0 bottom-[8%] aspect-square w-3/5 object-contain object-bottom'
-          />
-          <img
-            src={drawings[25]}
-            alt=''
-            width='20'
-            height='20'
-            class='absolute left-[8%] bottom-[8%] aspect-square w-1/4 object-contain object-bottom'
-          />
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/comer/'
-        aria-label='¡Dale de comer!'
-        data-speak='¡Dale de comer!'
-        class:list={[tileClass, 'bg-linear-to-b from-sky-300 from-58% to-green-500 to-62%']}
-      >
-        {/* Snorlax, el más comilón, y delante una baya en su plato */}
-        <span class='relative aspect-square w-full'>
-          <img
-            src={drawings[143]}
-            alt=''
-            width='60'
-            height='60'
-            class='absolute top-0 right-0 aspect-square w-3/4 object-contain'
-          />
-          <span
-            class='absolute bottom-0 left-0 grid place-items-center size-1/2 rounded-full bg-white shadow-md'
-          >
+        </Medal>
+      </button>
+    </h2>
+    <ul class='grid grid-cols-3 gap-4'>
+      <li>
+        <a
+          href='/juegos/atrapa/'
+          aria-label='¡Atrápalo!'
+          data-speak='¡Atrápalo!'
+          class:list={[tileClass, 'bg-linear-to-b from-green-600 to-green-800']}
+        >
+          {/* Pikachu en el bosque y la Pokéball volando hacia él */}
+          <span class='relative aspect-square w-full'>
             <img
-              src={berry}
+              src={drawings[25]}
               alt=''
-              width='30'
-              height='30'
-              class='aspect-square w-3/4 object-contain'
+              width='80'
+              height='80'
+              class='absolute top-0 right-0 aspect-square w-3/4 object-contain'
+            />
+            <Pokeball class='absolute bottom-0 left-0 size-1/3 -rotate-30' />
+          </span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/donde-esta/'
+          aria-label='¿Dónde está…?'
+          data-speak='¿Dónde está…?'
+          class:list={[tileClass, 'bg-radial from-white to-sky-300']}
+        >
+          {/* La voz que pregunta y tres Pokémon: el que pide, Pikachu, rodeado */}
+          <span class='grid grid-cols-2 gap-1 aspect-square w-full'>
+            <Icon
+              name='voice'
+              class='size-full text-sky-700'
+            />
+            <img
+              src={drawings[25]}
+              alt=''
+              width='36'
+              height='36'
+              class='aspect-square w-full object-contain rounded-full ring-2 ring-orange-600'
+            />
+            {
+              [1, 7].map((id) => (
+                <img
+                  src={drawings[id]}
+                  alt=''
+                  width='36'
+                  height='36'
+                  class='aspect-square w-full object-contain'
+                />
+              ))
+            }
+          </span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/escondite/'
+          aria-label='Escondite en la cueva'
+          data-speak='Escondite en la cueva'
+          class:list={[tileClass, 'bg-radial from-stone-400 from-30% to-slate-950 to-60%']}
+        >
+          {/* La cueva a oscuras y, en la luz de la linterna, Pikachu */}
+          <img
+            src={drawings[25]}
+            alt=''
+            width='60'
+            height='60'
+            class='aspect-square w-3/5 object-contain'
+          />
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/comer/'
+          aria-label='¡Dale de comer!'
+          data-speak='¡Dale de comer!'
+          class:list={[tileClass, 'bg-linear-to-b from-sky-300 from-58% to-green-500 to-62%']}
+        >
+          {/* Snorlax, el más comilón, y delante una baya en su plato */}
+          <span class='relative aspect-square w-full'>
+            <img
+              src={drawings[143]}
+              alt=''
+              width='60'
+              height='60'
+              class='absolute top-0 right-0 aspect-square w-3/4 object-contain'
+            />
+            <span
+              class='absolute bottom-0 left-0 grid place-items-center size-1/2 rounded-full bg-white shadow-md'
+            >
+              <img
+                src={berry}
+                alt=''
+                width='30'
+                height='30'
+                class='aspect-square w-3/4 object-contain'
+              />
+            </span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/cuantos/'
+          aria-label='¿Cuántos hay?'
+          data-speak='¿Cuántos hay?'
+          class:list={[tileClass, 'bg-linear-to-b from-lime-200 to-lime-400']}
+        >
+          {/* Tres Pikachu en el prado y la respuesta, el 3. La cifra mide lo
+              que su casilla (cqi): de 26 px a 320 a 35 a 375 */}
+          <span class='grid grid-cols-2 gap-1 aspect-square w-full'>
+            {
+              [0, 1, 2].map(() => (
+                <img
+                  src={drawings[25]}
+                  alt=''
+                  width='36'
+                  height='36'
+                  class='aspect-square w-full object-contain'
+                />
+              ))
+            }
+            <span class='@container grid place-items-center rounded-lg bg-indigo-600'>
+              <span class='text-[70cqi] leading-none font-black text-white'>3</span>
+            </span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/parejas/'
+          aria-label='Parejas'
+          data-speak='Parejas'
+          class:list={[tileClass, 'bg-linear-to-b from-amber-200 to-amber-400']}
+        >
+          {/* Cuatro cartas: dos tapadas y la pareja de Pikachu */}
+          <span class='grid grid-cols-2 gap-1.5 aspect-square w-full'>
+            {
+              [false, true, true, false].map((up) =>
+                up ? (
+                  <span class='grid place-items-center p-0.5 rounded-md bg-white'>
+                    <img
+                      src={drawings[25]}
+                      alt=''
+                      width='30'
+                      height='30'
+                      class='aspect-square w-full object-contain'
+                    />
+                  </span>
+                ) : (
+                  <span class='grid place-items-center rounded-md bg-radial from-indigo-400 to-indigo-700'>
+                    <Pokeball class='w-3/5' />
+                  </span>
+                )
+              )
+            }
+          </span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section
+    aria-label='Más juegos'
+    class='max-w-md mx-auto mt-8 pt-8 border-t border-slate-600'
+  >
+    <ul class='grid grid-cols-3 gap-4'>
+      <li>
+        <a
+          href='/juegos/adivina/'
+          aria-label='¿Quién es ese Pokémon?'
+          data-speak='¿Quién es ese Pokémon?'
+          class:list={[tileClass, 'bg-radial from-yellow-200 to-sky-500']}
+        >
+          {/* Silueta sobre el mismo fondo que el juego */}
+          <img
+            src={drawings[25]}
+            alt=''
+            width='120'
+            height='120'
+            class='aspect-square w-full object-contain brightness-0'
+          />
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/sorpresa/'
+          aria-label='Pokébola sorpresa'
+          data-speak='Pokébola sorpresa'
+          class:list={[tileClass, 'bg-radial from-slate-600 to-slate-900']}
+        >
+          {/* La Pokéball del juego, abriéndose y con un destello */}
+          <span class='relative aspect-square w-full'>
+            <Pokeball
+              class='absolute bottom-0 left-0 size-5/6'
+              topClass='-rotate-30'
+            />
+            <Icon
+              name='sparkle'
+              class='absolute top-0 right-0 size-1/2 text-yellow-400'
             />
           </span>
-        </span>
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/escondite/'
-        aria-label='Escondite en la cueva'
-        data-speak='Escondite en la cueva'
-        class:list={[tileClass, 'bg-radial from-stone-400 from-30% to-slate-950 to-60%']}
-      >
-        {/* La cueva a oscuras y, en la luz de la linterna, Pikachu */}
-        <img
-          src={drawings[25]}
-          alt=''
-          width='60'
-          height='60'
-          class='aspect-square w-3/5 object-contain'
-        />
-      </a>
-    </li>
-    <li>
-      <a
-        href='/juegos/cuantos/'
-        aria-label='¿Cuántos hay?'
-        data-speak='¿Cuántos hay?'
-        class:list={[tileClass, 'bg-linear-to-b from-lime-200 to-lime-400']}
-      >
-        {/* Tres Pikachu en el prado y la respuesta, el 3. La cifra mide lo
-            que su casilla (cqi): de 26 px a 320 a 35 a 375 */}
-        <span class='grid grid-cols-2 gap-1 aspect-square w-full'>
-          {
-            [0, 1, 2].map(() => (
-              <img
-                src={drawings[25]}
-                alt=''
-                width='36'
-                height='36'
-                class='aspect-square w-full object-contain'
-              />
-            ))
-          }
-          <span class='@container grid place-items-center rounded-lg bg-indigo-600'>
-            <span class='text-[70cqi] leading-none font-black text-white'>3</span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/evoluciona/'
+          aria-label='¡Evoluciona!'
+          data-speak='¡Evoluciona!'
+          class:list={[tileClass, 'bg-radial from-sky-200 to-indigo-700']}
+        >
+          {/* Charmander y, detrás, en blanco como al evolucionar, Charizard */}
+          <span class='relative aspect-square w-full'>
+            <img
+              src={drawings[6]}
+              alt=''
+              width='96'
+              height='96'
+              class='absolute top-0 right-0 aspect-square w-4/5 object-contain brightness-0 invert'
+            />
+            <img
+              src={drawings[4]}
+              alt=''
+              width='60'
+              height='60'
+              class='absolute bottom-0 left-0 aspect-square w-1/2 object-contain'
+            />
           </span>
-        </span>
-      </a>
-    </li>
-  </ul>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/balanza/'
+          aria-label='¿Cuál pesa más?'
+          data-speak='¿Cuál pesa más?'
+          class:list={[tileClass, 'bg-linear-to-b from-sky-400 to-sky-100']}
+        >
+          {/* El balancín inclinado: Snorlax abajo y Pikachu arriba */}
+          <span class='relative aspect-square w-full'>
+            <span
+              class='absolute left-1/2 top-[64%] w-1/4 aspect-square -translate-x-1/2 bg-amber-900 [clip-path:polygon(50%_0,100%_100%,0_100%)]'
+            ></span>
+            <span
+              class='absolute inset-x-0 top-[62%] h-1.5 rotate-12 rounded-full bg-amber-800'
+            ></span>
+            <img
+              src={drawings[143]}
+              alt=''
+              width='60'
+              height='60'
+              class='absolute right-0 bottom-[28%] aspect-square w-1/2 object-contain'
+            />
+            <img
+              src={drawings[25]}
+              alt=''
+              width='40'
+              height='40'
+              class='absolute left-[5%] bottom-[48%] aspect-square w-1/3 object-contain'
+            />
+          </span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/combate/'
+          aria-label='Fuego, agua, planta'
+          data-speak='Fuego, agua, planta'
+          class:list={[tileClass, 'bg-linear-to-b from-sky-300 to-lime-200']}
+        >
+          {/* Los tres iniciales en triángulo, como piedra, papel o tijera */}
+          <span class='relative aspect-square w-full'>
+            {
+              [
+                { id: 4, position: 'top-0 left-1/4' },
+                { id: 7, position: 'bottom-0 left-0' },
+                { id: 1, position: 'bottom-0 right-0' }
+              ].map(({ id, position }) => (
+                <img
+                  src={drawings[id]}
+                  alt=''
+                  width='54'
+                  height='54'
+                  class:list={['absolute aspect-square w-1/2 object-contain', position]}
+                />
+              ))
+            }
+          </span>
+        </a>
+      </li>
+      <li>
+        <a
+          href='/juegos/altura/'
+          aria-label='¿Cuál es más alto?'
+          data-speak='¿Cuál es más alto?'
+          class:list={[tileClass, 'bg-linear-to-b from-violet-400 to-pink-200']}
+        >
+          {/* Charizard y Pikachu de pie en la hierba, cada uno a su altura */}
+          <span class='relative aspect-square w-full'>
+            <span class='absolute inset-x-0 bottom-0 h-1/6 rounded-full bg-green-600'></span>
+            <img
+              src={drawings[6]}
+              alt=''
+              width='45'
+              height='45'
+              class='absolute right-0 bottom-[8%] aspect-square w-3/5 object-contain object-bottom'
+            />
+            <img
+              src={drawings[25]}
+              alt=''
+              width='20'
+              height='20'
+              class='absolute left-[8%] bottom-[8%] aspect-square w-1/4 object-contain object-bottom'
+            />
+          </span>
+        </a>
+      </li>
+    </ul>
+  </section>
 </MainLayout>
