@@ -139,8 +139,11 @@ const pokemons = await getWildPokemons()
         playSound(cry)
       }
 
-      // El que se pida o, si no, mejor uno que aún no esté en el álbum; si ya
-      // están todos, cualquiera
+      // El que se pida o, si no, mejor uno que aún no esté en el álbum y que
+      // no sea el de ahora. Si no queda ninguno así (están todos, o el único
+      // que falta es el de ahora y ha pulsado «Otro» sin atraparlo),
+      // cualquier otro: «Otro» siempre cambia, y el siguiente vuelve a sacar
+      // el que falta
       const showPokemon = ({
         announce,
         wanted
@@ -154,8 +157,10 @@ const pokemons = await getWildPokemons()
         speechSynthesis.cancel()
 
         const album = getAlbum()
-        const missing = pokemons.filter(({ id }) => !album.includes(id))
         const previous = current
+        const missing = pokemons.filter(
+          (pokemon) => !album.includes(pokemon.id) && pokemon !== previous
+        )
         current = wanted ?? pickOther(missing.length > 0 ? missing : pokemons, previous)
 
         // El fondo es el degradado de su hábitat
