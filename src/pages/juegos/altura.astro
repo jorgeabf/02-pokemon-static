@@ -65,6 +65,7 @@ const pokemons = await getMeasuredPokemons()
 
   <script>
     import type { MeasuredPokemon } from 'interfaces/game-pokemon'
+    import { sayHeight } from 'scripts/heights'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
@@ -75,13 +76,6 @@ const pokemons = await getMeasuredPokemons()
     const isClearlyDifferent = (a: MeasuredPokemon, b: MeasuredPokemon) => {
       const ratio = Math.max(a.height, b.height) / Math.min(a.height, b.height)
       return ratio >= 2 && ratio <= 5
-    }
-
-    // Redondeado, que es como lo entiende un niño
-    const sayHeight = ({ height }: MeasuredPokemon) => {
-      if (height < 1) return `${Math.round(height * 100)} centímetros`
-      const meters = Math.round(height)
-      return meters === 1 ? 'un metro' : `${meters} metros`
     }
 
     const handleHeight = () => {
@@ -147,8 +141,8 @@ const pokemons = await getMeasuredPokemons()
         cry.onended = () =>
           speak(
             side === taller
-              ? `¡Muy bien! ${tall.spokenName} mide ${sayHeight(tall)}`
-              : `¡Uy! Es más alto ${tall.spokenName}: mide ${sayHeight(tall)}`
+              ? `¡Muy bien! ${tall.spokenName} mide ${sayHeight(tall.height)}`
+              : `¡Uy! Es más alto ${tall.spokenName}: mide ${sayHeight(tall.height)}`
           )
         playSound(cry)
       }

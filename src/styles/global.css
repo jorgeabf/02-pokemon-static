@@ -308,6 +308,23 @@
     );
   }
 
+  /* ¿Más grande que yo? (ficha): Ibai y el Pokémon de pie, a la misma escala
+     y lo más grandes que quepan. La escala (px por metro) es la menor de dos:
+     la que hace que el más alto ocupe todo el alto y la que hace que los dos
+     juntos ocupen todo el ancho. --tallest y --width (alto del más alto y
+     ancho de los dos, en metros) los pone la ficha; cada uno lleva lo que
+     mide en --meters. --scale se calcula en cada hijo, y sus cq son los de
+     la escena, que es su contenedor */
+  .size-compare {
+    container-type: size;
+    gap: --spacing(2);
+    --scale: min(100cqh / var(--tallest), (100cqw - --spacing(2)) / var(--width));
+
+    & > * {
+      height: calc(var(--meters) * var(--scale));
+    }
+  }
+
   /* Linterna: a oscuras salvo un círculo de luz en --x, --y (los fija el JS
      al mover el dedo). touch-none para que arrastrar el dedo mueva la luz y
      no la página; la capa oscura deja pasar los toques a lo que tapa */
