@@ -42,19 +42,22 @@ export const getStaticPaths = (async () => {
 
   const { results } = (await resp.json()) as PokemonListResponse
 
-  return results.map(({ name, url }) => ({
+  // previous y next: los de al lado por número, para las flechas de la imagen
+  return results.map(({ name, url }, index) => ({
     params: {
       name: name
     },
     props: {
       url: url,
-      name: name
+      name: name,
+      previous: results[index - 1]?.name,
+      next: results[index + 1]?.name
     }
   }))
 }) satisfies GetStaticPaths
 
 const { name } = Astro.params
-const { url } = Astro.props
+const { url, previous, next } = Astro.props
 
 const id = url.split('/').at(-2) ?? ''
 
@@ -126,56 +129,96 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
       </button>
     </PageHeader>
 
-    {/* max-h-full: la imagen sigue a la tarjeta cuando se encoge, y
-        object-contain la dibuja entera, sin estirarla, en lo que queda */}
-    <div
-      id='pokemon-image'
-      class='relative min-h-40 px-8 py-4 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
-    >
-      <img
-        transition:name={`${name}-image`}
-        src={imageSrc}
-        alt={`Imagen de ${spanishName}`}
-        class='max-h-full mx-auto object-contain group-has-[#shiny:checked]:hidden group-has-[#compare:checked]:invisible'
-        width='360'
-        height='360'
-        loading='eager'
-        decoding='async'
-      />
-      <img
-        src={shinyImageSrc}
-        alt={`Imagen de ${spanishName} brillante`}
-        class='hidden max-h-full mx-auto object-contain group-has-[#shiny:checked]:block group-has-[#compare:checked]:invisible'
-        width='360'
-        height='360'
-        loading='lazy'
-      />
-      {/* ¿Más grande que yo?: Ibai y el Pokémon de pie, a escala
-          (.size-compare), en el sitio de la imagen. La imagen sigue ahí,
-          invisible, para que la tarjeta no cambie de tamaño */}
+    {/* La tarjeta de la imagen y, encima de sus lados, las flechas al
+        anterior y al siguiente. Fuera de la tarjeta: tocarlas no hace sonar
+        el grito ni la encoge (active:scale-95). Lo que se encoge para caber
+        es este envoltorio; la tarjeta lo llena (h-full) */}
+    <div class='relative min-h-40'>
+      {/* max-h-full: la imagen sigue a la tarjeta cuando se encoge, y
+          object-contain la dibuja entera, sin estirarla, en lo que queda */}
       <div
-        class='size-compare absolute inset-x-8 inset-y-4 hidden items-end justify-center border-b-4 border-green-600 group-has-[#compare:checked]:flex'
-        style={sizeScene}
+        id='pokemon-image'
+        class='relative h-full px-8 py-4 rounded-2xl bg-slate-900 border border-slate-600 cursor-pointer transition-transform active:scale-95'
       >
-        <Icon
-          name='child'
-          class='w-auto text-sky-400'
-          style={`--meters: ${IBAI_HEIGHT}`}
-        />
         <img
+          transition:name={`${name}-image`}
           src={imageSrc}
-          alt=''
-          class='aspect-square w-auto group-has-[#shiny:checked]:hidden'
-          style={`--meters: ${height}`}
+          alt={`Imagen de ${spanishName}`}
+          class='max-h-full mx-auto object-contain group-has-[#shiny:checked]:hidden group-has-[#compare:checked]:invisible'
+          width='360'
+          height='360'
+          loading='eager'
+          decoding='async'
         />
         <img
           src={shinyImageSrc}
-          alt=''
+          alt={`Imagen de ${spanishName} brillante`}
+          class='hidden max-h-full mx-auto object-contain group-has-[#shiny:checked]:block group-has-[#compare:checked]:invisible'
+          width='360'
+          height='360'
           loading='lazy'
-          class='hidden aspect-square w-auto group-has-[#shiny:checked]:block'
-          style={`--meters: ${height}`}
         />
+        {/* ¿Más grande que yo?: Ibai y el Pokémon de pie, a escala
+            (.size-compare), en el sitio de la imagen. La imagen sigue ahí,
+            invisible, para que la tarjeta no cambie de tamaño */}
+        <div
+          class='size-compare absolute inset-x-8 inset-y-4 hidden items-end justify-center border-b-4 border-green-600 group-has-[#compare:checked]:flex'
+          style={sizeScene}
+        >
+          <Icon
+            name='child'
+            class='w-auto text-sky-400'
+            style={`--meters: ${IBAI_HEIGHT}`}
+          />
+          <img
+            src={imageSrc}
+            alt=''
+            class='aspect-square w-auto group-has-[#shiny:checked]:hidden'
+            style={`--meters: ${height}`}
+          />
+          <img
+            src={shinyImageSrc}
+            alt=''
+            loading='lazy'
+            class='hidden aspect-square w-auto group-has-[#shiny:checked]:block'
+            style={`--meters: ${height}`}
+          />
+        </div>
       </div>
+
+      {/* replace: pasar de uno a otro no llena el historial, y «Volver» sigue
+          llevando a donde se estaba antes (la lista, el álbum…). En el #1 no
+          hay anterior ni en el #151 siguiente */}
+      {
+        previous && (
+          <a
+            href={`/pokemons/${previous}`}
+            data-astro-history='replace'
+            aria-label='Anterior'
+            class='btn absolute left-1 top-1/2 -translate-y-1/2'
+          >
+            <Icon
+              name='arrow-left'
+              size={40}
+            />
+          </a>
+        )
+      }
+      {
+        next && (
+          <a
+            href={`/pokemons/${next}`}
+            data-astro-history='replace'
+            aria-label='Siguiente'
+            class='btn absolute right-1 top-1/2 -translate-y-1/2'
+          >
+            <Icon
+              name='arrow-right'
+              size={40}
+            />
+          </a>
+        )
+      }
     </div>
 
     {/* w-full: en flex, mx-auto lo encogería al ancho de los iconos */}
