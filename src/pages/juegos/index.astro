@@ -289,5 +289,49 @@ const tileClass =
         </span>
       </a>
     </li>
+    <li>
+      <a
+        href='/juegos/escondite/'
+        aria-label='Escondite en la cueva'
+        data-speak='Escondite en la cueva'
+        class:list={[tileClass, 'bg-radial from-stone-400 from-30% to-slate-950 to-60%']}
+      >
+        {/* La cueva a oscuras y, en la luz de la linterna, Pikachu */}
+        <img
+          src={drawings[25]}
+          alt=''
+          width='60'
+          height='60'
+          class='aspect-square w-3/5 object-contain'
+        />
+      </a>
+    </li>
+    <li>
+      <a
+        href='/juegos/cuantos/'
+        aria-label='¿Cuántos hay?'
+        data-speak='¿Cuántos hay?'
+        class:list={[tileClass, 'bg-linear-to-b from-lime-200 to-lime-400']}
+      >
+        {/* Tres Pikachu en el prado y la respuesta, el 3. La cifra mide lo
+            que su casilla (cqi): de 26 px a 320 a 35 a 375 */}
+        <span class='grid grid-cols-2 gap-1 aspect-square w-full'>
+          {
+            [0, 1, 2].map(() => (
+              <img
+                src={drawings[25]}
+                alt=''
+                width='36'
+                height='36'
+                class='aspect-square w-full object-contain'
+              />
+            ))
+          }
+          <span class='@container grid place-items-center rounded-lg bg-indigo-600'>
+            <span class='text-[70cqi] leading-none font-black text-white'>3</span>
+          </span>
+        </span>
+      </a>
+    </li>
   </ul>
 </MainLayout>

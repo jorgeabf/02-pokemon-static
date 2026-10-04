@@ -4,7 +4,7 @@ import GameHeader from '@components/games/GameHeader.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getGamePokemons } from 'services/game-pokemons'
 
-const PAGE_TITLE = '¿Dónde está…?'
+const PAGE_TITLE = 'Escondite en la cueva'
 
 const pokemons = await getGamePokemons()
 ---
@@ -12,24 +12,27 @@ const pokemons = await getGamePokemons()
 <MainLayout title={PAGE_TITLE}>
   <GameHeader title={PAGE_TITLE} />
 
-  {/* data-state: asking (preguntando) o found (encontrado). La casilla buena
-      lleva data-target y la que se toca sin serlo, data-wrong mientras niega */}
+  {/* ¿Dónde está…? a oscuras (scripts/find-game). data-state: asking
+      (preguntando) o found (encontrado). La casilla buena lleva data-target y
+      la que se toca sin serlo, data-wrong mientras niega */}
   <div
     id='find'
     class='group grid gap-6 max-w-sm mx-auto'
     data-state='asking'
     data-pokemons={JSON.stringify(pokemons)}
   >
-    {/* Tres casillas en triángulo: la primera centrada arriba */}
-    <div class='grid grid-cols-4 gap-4'>
+    {/* La cueva: a oscuras salvo la luz de la linterna, que sigue al dedo
+        (scripts/flashlight). Al encontrarlo se enciende la luz y se ven todos.
+        Solo hay transición al encenderse: al pasar al siguiente se apaga de
+        golpe, para que no se vea dónde están los nuevos */}
+    <div
+      class='flashlight grid grid-cols-3 gap-3 p-3 rounded-3xl bg-radial from-stone-500 to-stone-800 group-data-[state=found]:after:opacity-0 group-data-[state=found]:after:transition-opacity group-data-[state=found]:after:duration-700'
+    >
       {
-        [0, 1, 2].map((index) => (
+        Array.from({ length: 9 }, () => (
           <button
             data-option
-            class:list={[
-              'col-span-2 grid place-items-center aspect-square p-3 rounded-2xl bg-radial from-white to-sky-300 transition-[opacity,scale] active:scale-95 motion-safe:data-wrong:animate-pokemon-no group-data-[state=found]:not-data-target:opacity-30 motion-safe:group-data-[state=found]:data-target:animate-battle-cheer',
-              index === 0 && 'col-start-2'
-            ]}
+            class='grid place-items-center aspect-square transition-[opacity,scale] active:scale-95 motion-safe:data-wrong:animate-pokemon-no group-data-[state=found]:not-data-target:opacity-30 motion-safe:group-data-[state=found]:data-target:animate-battle-cheer'
           >
             <img
               alt=''
@@ -70,5 +73,6 @@ const pokemons = await getGamePokemons()
 
   <script>
     import 'scripts/find-game'
+    import 'scripts/flashlight'
   </script>
 </MainLayout>

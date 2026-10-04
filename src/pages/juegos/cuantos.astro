@@ -1,0 +1,235 @@
+---
+import { Icon } from 'astro-icon/components'
+import GameHeader from '@components/games/GameHeader.astro'
+import MainLayout from '@layouts/MainLayout.astro'
+import { getGamePokemons } from 'services/game-pokemons'
+
+const PAGE_TITLE = '¿Cuántos hay?'
+
+const pokemons = await getGamePokemons()
+
+// Hasta 20: un sitio para cada uno, en 5 columnas
+const PLACES = 20
+---
+
+<MainLayout title={PAGE_TITLE}>
+  <GameHeader title={PAGE_TITLE} />
+
+  {/* data-state: asking (preguntando) o found (acertado). Los sitios que no
+      tienen Pokémon llevan data-empty y los ya contados, data-counted; la
+      respuesta buena lleva data-right y la que se toca sin serlo, data-wrong
+      mientras niega */}
+  <div
+    id='count'
+    class='group grid gap-6 max-w-sm mx-auto'
+    data-state='asking'
+    data-pokemons={JSON.stringify(pokemons)}
+  >
+    {/* El prado. Los sitios vacíos guardan su hueco (invisible): el prado
+        mide siempre lo mismo */}
+    <div class='grid grid-cols-5 gap-2 p-3 rounded-2xl bg-linear-to-b from-lime-200 to-lime-400'>
+      {
+        Array.from({ length: PLACES }, () => (
+          <button
+            data-cell
+            class='relative aspect-square transition-transform active:scale-95 data-empty:invisible motion-safe:group-data-[state=found]:animate-battle-cheer'
+          >
+            <img
+              alt=''
+              class='aspect-square w-full'
+            />
+            {/* El número que le ha tocado al contarlo */}
+            <span
+              data-number
+              class='absolute -top-1 -right-1 hidden size-6 place-items-center rounded-full bg-orange-600 text-sm font-black text-white in-data-counted:grid'
+            ></span>
+          </button>
+        ))
+      }
+    </div>
+
+    {/* Las respuestas, en cifra (Ibai lee los números) y de menor a mayor */}
+    <div class='grid grid-cols-3 gap-4'>
+      {
+        [0, 1, 2].map(() => (
+          <button
+            data-answer
+            class='btn-big bg-indigo-600 text-4xl font-black transition-[opacity,scale] motion-safe:data-wrong:animate-pokemon-no group-data-[state=found]:data-right:bg-green-600 group-data-[state=found]:not-data-right:opacity-30'
+          ></button>
+        ))
+      }
+    </div>
+
+    <div class='grid grid-cols-2 gap-4'>
+      <button
+        id='count-ask'
+        aria-label='Repetir la pregunta'
+        class='btn-big bg-sky-600 hover:bg-sky-700'
+      >
+        <Icon
+          name='voice'
+          size={40}
+        />
+      </button>
+      <button
+        id='count-next'
+        aria-label='Otro'
+        class='btn-big bg-orange-700 hover:bg-orange-800'
+      >
+        <Icon
+          name='arrow-right'
+          size={40}
+        />
+      </button>
+    </div>
+  </div>
+  <audio
+    id='count-cry'
+    preload='auto'
+  ></audio>
+
+  <script>
+    import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { animationsEnd } from 'scripts/animations'
+    import { createDeck, pickSome } from 'scripts/random'
+    import { canSpeak, playSound, speak } from 'scripts/sounds'
+
+    type State = 'asking' | 'found'
+
+    // Las respuestas que no son están cerca de la buena, a 3 como mucho: para
+    // acertar hay que contar
+    const NEAR = 3
+
+    const handleCount = () => {
+      const count = document.getElementById('count') as HTMLDivElement
+
+      if (!count) return
+
+      const cells = [...count.querySelectorAll<HTMLButtonElement>('[data-cell]')]
+      const answers = [...count.querySelectorAll<HTMLButtonElement>('[data-answer]')]
+      const cry = document.getElementById('count-cry') as HTMLAudioElement
+      const btnAsk = document.getElementById('count-ask') as HTMLButtonElement
+      const btnNext = document.getElementById('count-next') as HTMLButtonElement
+
+      const pokemons: GamePokemon[] = JSON.parse(count.dataset.pokemons ?? '[]')
+      // Ni el Pokémon ni cuántos hay (de 1 a uno por sitio) se repiten hasta
+      // que han salido todos
+      const drawPokemon = createDeck(pokemons)
+      const drawTotal = createDeck(cells.map((_, index) => index + 1))
+      let pokemon: GamePokemon | undefined
+      let total = 0
+      let counted = 0
+      let choices: number[] = []
+      // Cada pregunta es otra ronda: lo que quedara de la anterior se descarta
+      let round = 0
+
+      const getState = () => count.dataset.state as State
+      const setState = (state: State) => {
+        count.dataset.state = state
+      }
+
+      const ask = () => {
+        if (pokemon) speak(`¿Cuántos ${pokemon.spokenName} hay?`)
+      }
+
+      // «Hay un Pikachu», y no «uno»
+      const sayFound = () => {
+        if (!pokemon) return
+
+        const phrase = `¡Muy bien! ¡Hay ${total === 1 ? 'un' : total} ${pokemon.spokenName}!`
+        speechSynthesis.cancel()
+        cry.onended = () => speak(phrase)
+        playSound(cry)
+      }
+
+      // Unos cuantos del mismo Pokémon, en sitios al azar, y las respuestas:
+      // la buena y otras dos cerca, de menor a mayor
+      const showRound = () => {
+        round++
+        cry.onended = null
+        speechSynthesis.cancel()
+
+        const current = drawPokemon()
+        pokemon = current
+        total = drawTotal()
+        counted = 0
+
+        const places = new Set(pickSome(cells, total))
+        cells.forEach((cell) => {
+          const img = cell.querySelector('img') as HTMLImageElement
+          img.src = current.image
+          cell.setAttribute('aria-label', current.name)
+          cell.toggleAttribute('data-empty', !places.has(cell))
+          delete cell.dataset.counted
+        })
+
+        const near = cells
+          .map((_, index) => index + 1)
+          .filter((n) => n !== total && Math.abs(n - total) <= NEAR)
+        choices = [total, ...pickSome(near, answers.length - 1)].sort((a, b) => a - b)
+        answers.forEach((answer, index) => {
+          answer.textContent = String(choices[index])
+          answer.toggleAttribute('data-right', choices[index] === total)
+          delete answer.dataset.wrong
+        })
+        cry.src = current.cry
+        setState('asking')
+      }
+
+      // Contar con el dedo: cada uno que se toca se queda con su número y la
+      // voz lo dice. Uno ya contado vuelve a decir el suyo. Como no se repiten,
+      // el último número es cuántos ha contado
+      const countCell = (cell: HTMLButtonElement) => {
+        if (getState() !== 'asking') return
+
+        const number = cell.querySelector('[data-number]') as HTMLSpanElement
+
+        if (!('counted' in cell.dataset)) {
+          counted++
+          number.textContent = String(counted)
+          cell.dataset.counted = ''
+        }
+        speak(number.textContent ?? '')
+      }
+
+      const choose = async (answer: HTMLButtonElement, n: number) => {
+        // Ya acertado: tocar la buena lo vuelve a decir
+        if (getState() === 'found') {
+          if (n === total) sayFound()
+          return
+        }
+
+        if (n === total) {
+          setState('found')
+          sayFound()
+          return
+        }
+
+        // Esa no es: niega y le dice cómo saberlo. No se pierde
+        if ('wrong' in answer.dataset) return
+
+        const thisRound = round
+        answer.dataset.wrong = ''
+        speak(`¡${n} no! ¡Cuéntalos con el dedo!`)
+        await animationsEnd(answer)
+        if (thisRound !== round) return
+
+        delete answer.dataset.wrong
+      }
+
+      cells.forEach((cell) => cell.addEventListener('click', () => countCell(cell)))
+      answers.forEach((answer, index) =>
+        answer.addEventListener('click', () => choose(answer, choices[index]))
+      )
+      btnAsk.addEventListener('click', ask)
+      btnNext.addEventListener('click', () => {
+        showRound()
+        ask()
+      })
+      showRound()
+      if (canSpeak()) ask()
+    }
+
+    document.addEventListener('astro:page-load', handleCount)
+  </script>
+</MainLayout>
