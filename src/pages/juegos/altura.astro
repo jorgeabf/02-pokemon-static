@@ -17,6 +17,7 @@ const pokemons = await getMeasuredPokemons()
     id='height'
     class='group grid gap-6 max-w-sm mx-auto'
     data-pokemons={JSON.stringify(pokemons)}
+    data-question={PAGE_TITLE}
   >
     {/* Escena de 4:3 (en cuadrada sobraría cielo), con el suelo en el sexto
         de abajo y los dos de pie encima, del mismo tamaño hasta que se elige */}
@@ -64,6 +65,7 @@ const pokemons = await getMeasuredPokemons()
 
   <script>
     import type { MeasuredPokemon } from 'interfaces/game-pokemon'
+    import { sayHeight } from 'scripts/heights'
     import { pickOther } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
 
@@ -74,13 +76,6 @@ const pokemons = await getMeasuredPokemons()
     const isClearlyDifferent = (a: MeasuredPokemon, b: MeasuredPokemon) => {
       const ratio = Math.max(a.height, b.height) / Math.min(a.height, b.height)
       return ratio >= 2 && ratio <= 5
-    }
-
-    // Redondeado, que es como lo entiende un niño
-    const sayHeight = ({ height }: MeasuredPokemon) => {
-      if (height < 1) return `${Math.round(height * 100)} centímetros`
-      const meters = Math.round(height)
-      return meters === 1 ? 'un metro' : `${meters} metros`
     }
 
     const handleHeight = () => {
@@ -96,6 +91,7 @@ const pokemons = await getMeasuredPokemons()
       const btnNext = document.getElementById('height-next') as HTMLButtonElement
 
       const pokemons: MeasuredPokemon[] = JSON.parse(scene.dataset.pokemons ?? '[]')
+      const question = scene.dataset.question ?? ''
       let pair: Record<Side, MeasuredPokemon> | undefined
 
       const image = (side: Side) =>
@@ -107,9 +103,11 @@ const pokemons = await getMeasuredPokemons()
         buttons[side].setAttribute('aria-label', pokemon.name)
       }
 
+      // Lo que quede de la ronda anterior (grito y frase) se corta
       const showPair = () => {
         delete scene.dataset.taller
         cry.onended = null
+        cry.pause()
         speechSynthesis.cancel()
 
         const first = pickOther(pokemons, pair?.left)
@@ -143,15 +141,20 @@ const pokemons = await getMeasuredPokemons()
         cry.onended = () =>
           speak(
             side === taller
-              ? `¡Muy bien! ${tall.spokenName} mide ${sayHeight(tall)}`
-              : `¡Uy! Es más alto ${tall.spokenName}: mide ${sayHeight(tall)}`
+              ? `¡Muy bien! ${tall.spokenName} mide ${sayHeight(tall.height)}`
+              : `¡Uy! Es más alto ${tall.spokenName}: mide ${sayHeight(tall.height)}`
           )
         playSound(cry)
       }
 
       buttons.left.addEventListener('click', () => choose('left'))
       buttons.right.addEventListener('click', () => choose('right'))
-      btnNext.addEventListener('click', showPair)
+      // Cada pareja nueva empieza con la pregunta. La primera no: la acaba de
+      // decir su casilla de /juegos/
+      btnNext.addEventListener('click', () => {
+        showPair()
+        speak(question)
+      })
       showPair()
     }
 

@@ -96,4 +96,14 @@ const drawings = await getPokemonDrawings(albumSample.map(({ id }) => id))
       </span>
     </NavLink>
   </ul>
+  {/* Lo que lleva guardado para jugar sin conexión, sobre el borde de abajo:
+      solo mientras guarda (lo rellena scripts/service-worker.ts). Persiste al
+      navegar, para no volver a empezar oculta en cada página */}
+  <progress
+    id='offline-progress'
+    transition:persist='offline-progress'
+    hidden
+    aria-label='Guardando para jugar sin conexión'
+    class='absolute inset-x-0 -bottom-px w-full h-1 appearance-none bg-transparent [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-sky-400 [&::-moz-progress-bar]:bg-sky-400 data-done:[&::-webkit-progress-value]:bg-green-500 data-done:[&::-moz-progress-bar]:bg-green-500 data-done:animate-offline-ready'
+  ></progress>
 </nav>

@@ -1,7 +1,9 @@
 ---
+import Medal from '@components/shared/Medal.astro'
 import PageHeader from '@components/shared/PageHeader.astro'
 import PageTitle from '@components/shared/PageTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
+import { ALBUM_MEDALS } from 'consts/album-medals'
 import { getPokemonDrawings } from 'services/pokemon-images'
 import { getSpanishNames, toSpokenName } from 'services/pokemon-species'
 
@@ -42,8 +44,34 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
     <span><span id='album-total'>0</span> de {pokemons.length}</span>
   </button>
 
-  {/* Las que faltan, en sombra y sin enlace (un <a> sin href no se puede tocar);
-      el script colorea las atrapadas y las enlaza a su ficha */}
+  {/* Las medallas, con su número (Ibai lee los números): en gris hasta
+      tenerlas. Al tocarlas se dice cuál es o cuántos faltan (el script pone
+      data-earned y la voz) */}
+  <ul
+    id='album-medals'
+    aria-label='Medallas'
+    class='grid grid-cols-5 gap-2 max-w-sm mx-auto mb-4'
+  >
+    {
+      ALBUM_MEDALS.map((medal) => (
+        <li
+          data-medal={medal}
+          class='grayscale opacity-40 data-earned:grayscale-0 data-earned:opacity-100'
+        >
+          <button
+            aria-label={`Medalla de ${medal}`}
+            class='block w-full transition-transform active:scale-95'
+          >
+            <Medal class='w-full'>{medal}</Medal>
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+
+  {/* Las que faltan, en sombra, llevan a ¡Atrápalo! con ese Pokémon (?id=),
+      que al entrar dice cuál es; el script colorea las atrapadas y las
+      enlaza a su ficha */}
   <ul
     id='album-grid'
     aria-label='Pokémon del álbum'
@@ -56,10 +84,12 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
           data-id={id}
         >
           <a
+            href={`/juegos/atrapa/?id=${id}`}
+            aria-label='¿Quién será?'
             data-name={name}
             data-label={spanishName}
             data-spoken={spokenName}
-            class='block p-1 rounded-xl bg-slate-900 border border-slate-600 transition-transform group-data-captured:active:scale-95'
+            class='block p-1 rounded-xl bg-slate-900 border border-slate-600 transition-transform active:scale-95'
           >
             <img
               src={drawings[id]}
@@ -107,6 +137,23 @@ const drawings = await getPokemonDrawings(pokemons.map(({ id }) => id))
         album.length === 0
           ? 'Todavía no tienes ninguno. ¡Ve a atraparlos!'
           : `Tienes ${album.length} Pokémon de ${progress.max}`
+
+      // Las medallas salen de la cuenta: no se guardan aparte
+      document
+        .querySelectorAll<HTMLLIElement>('#album-medals [data-medal]')
+        .forEach((item) => {
+          const medal = Number(item.dataset.medal)
+          const missing = medal - album.length
+          const button = item.querySelector('button') as HTMLButtonElement
+
+          item.toggleAttribute('data-earned', missing <= 0)
+          button.dataset.speak =
+            missing <= 0
+              ? `¡Medalla de ${medal} Pokémon!`
+              : missing === 1
+                ? 'Te falta un Pokémon para esta medalla'
+                : `Te faltan ${missing} Pokémon para esta medalla`
+        })
     }
 
     document.addEventListener('astro:page-load', handleAlbum)

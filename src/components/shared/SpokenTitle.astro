@@ -1,0 +1,29 @@
+---
+import { Icon } from 'astro-icon/components'
+import PageTitle from '@components/shared/PageTitle.astro'
+
+interface Props {
+  // Lo que dice la voz al tocarlo
+  speech: string
+}
+
+const { speech } = Astro.props
+---
+
+{/* Un título que se dice al tocarlo (Ibai no lee palabras): el altavoz,
+    pegado al texto, avisa de que suena. Sin botones a los lados, queda
+    centrado como el de las secciones */}
+<PageTitle>
+  <button
+    data-speak={speech}
+    class='inline-flex items-center gap-2 transition-transform active:scale-95'
+  >
+    <slot />
+    <Icon
+      name='speaker'
+      size={28}
+      aria-hidden='true'
+      class='shrink-0'
+    />
+  </button>
+</PageTitle>

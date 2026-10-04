@@ -1,3 +1,5 @@
+import { ALBUM_MEDALS } from 'consts/album-medals'
+
 // Los números de los Pokémon que Ibai ha atrapado, guardados en el móvil
 const ALBUM_KEY = 'album'
 
@@ -13,3 +15,7 @@ export const addToAlbum = (id: number) => {
   localStorage.setItem(ALBUM_KEY, JSON.stringify([...album, id]))
   return true
 }
+
+// La medalla que se gana justo al llegar a tantos Pokémon, si la hay
+export const medalAt = (count: number) =>
+  ALBUM_MEDALS.find((medal) => medal === count)

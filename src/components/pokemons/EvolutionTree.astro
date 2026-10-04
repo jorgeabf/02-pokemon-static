@@ -64,7 +64,9 @@ const itemClass =
           aria-hidden='true'
           class='size-6 shrink-0'
         />
-        <ul class='grid gap-2'>
+        {/* Las ramas (Eevee), una al lado de otra: así la cadena mide de
+            alto lo que un Pokémon y la ficha cabe en la pantalla */}
+        <ul class='flex gap-2'>
           {evolvesTo.map((next) => (
             <li>
               <Astro.self

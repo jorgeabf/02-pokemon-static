@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components'
 import GameHeader from '@components/games/GameHeader.astro'
 import Confetti from '@components/shared/Confetti.astro'
+import Medal from '@components/shared/Medal.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getWildPokemons } from 'services/game-pokemons'
@@ -16,7 +17,8 @@ const pokemons = await getWildPokemons()
 
   {/* data-state: idle (esperando), throwing, shaking, caught o escaped. Cada
       paso lo anima el CSS; debajo de cada animación ya está como acaba.
-      data-celebrate (confeti) si es nuevo en el álbum */}
+      data-celebrate (confeti) si es nuevo en el álbum y data-medal si con él
+      se gana una medalla */}
   <div
     id='wild'
     class='group relative grid gap-6 max-w-sm mx-auto'
@@ -64,6 +66,12 @@ const pokemons = await getWildPokemons()
           class='size-10 text-yellow-300'
         />
       </span>
+      {/* La medalla ganada, arriba (el script pone su número) */}
+      <span
+        class='col-start-1 row-start-1 self-start hidden w-1/4 group-data-medal:block motion-safe:group-data-medal:animate-pokemon-pop'
+      >
+        <Medal class='w-full'><span id='wild-medal'></span></Medal>
+      </span>
     </button>
 
     <p
@@ -91,8 +99,9 @@ const pokemons = await getWildPokemons()
   ></audio>
 
   <script>
+    import { ALBUM_MEDALS } from 'consts/album-medals'
     import type { WildPokemon } from 'interfaces/game-pokemon'
-    import { addToAlbum, getAlbum } from 'scripts/album'
+    import { addToAlbum, getAlbum, medalAt } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
     import { pickOther } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
@@ -105,6 +114,12 @@ const pokemons = await getWildPokemons()
     const catchChance = ({ captureRate }: WildPokemon) =>
       0.5 + (0.5 * captureRate) / 255
 
+    // Con la última medalla ya los tiene todos
+    const sayMedal = (medal: number) =>
+      medal === ALBUM_MEDALS.at(-1)
+        ? ` ¡Ya los tienes todos! ¡Medalla de ${medal}!`
+        : ` ¡Y has ganado la medalla de ${medal}!`
+
     const handleWild = () => {
       const wild = document.getElementById('wild') as HTMLDivElement
 
@@ -114,6 +129,7 @@ const pokemons = await getWildPokemons()
       const image = document.getElementById('wild-image') as HTMLImageElement
       const name = document.getElementById('wild-name') as HTMLParagraphElement
       const cry = document.getElementById('wild-cry') as HTMLAudioElement
+      const medalNumber = document.getElementById('wild-medal') as HTMLSpanElement
       const btnNext = document.getElementById('wild-next') as HTMLButtonElement
 
       const pokemons: WildPokemon[] = JSON.parse(wild.dataset.pokemons ?? '[]')
@@ -131,17 +147,25 @@ const pokemons = await getWildPokemons()
         playSound(cry)
       }
 
-      // Mejor uno que aún no esté en el álbum; si ya están todos, cualquiera
-      const showPokemon = ({ announce }: { announce: boolean }) => {
+      // El que se pida o, si no, mejor uno que aún no esté en el álbum; si ya
+      // están todos, cualquiera
+      const showPokemon = ({
+        announce,
+        wanted
+      }: {
+        announce: boolean
+        wanted?: WildPokemon
+      }) => {
         round++
         delete wild.dataset.celebrate
+        delete wild.dataset.medal
         cry.onended = null
         speechSynthesis.cancel()
 
         const album = getAlbum()
         const missing = pokemons.filter(({ id }) => !album.includes(id))
         const previous = current
-        current = pickOther(missing.length > 0 ? missing : pokemons, previous)
+        current = wanted ?? pickOther(missing.length > 0 ? missing : pokemons, previous)
 
         // El fondo es el degradado de su hábitat
         if (previous) scene.classList.remove(...previous.tile.split(' '))
@@ -172,10 +196,15 @@ const pokemons = await getWildPokemons()
 
         if (Math.random() < catchChance(pokemon)) {
           const isNew = addToAlbum(pokemon.id)
+          const medal = isNew ? medalAt(getAlbum().length) : undefined
           setState('caught')
           if (isNew) wild.dataset.celebrate = ''
+          if (medal) {
+            medalNumber.textContent = String(medal)
+            wild.dataset.medal = ''
+          }
           sayAfterCry(
-            `¡Has atrapado a ${pokemon.spokenName}!${isNew ? ' ¡Nuevo en tu álbum!' : ''}`
+            `¡Has atrapado a ${pokemon.spokenName}!${isNew ? ' ¡Nuevo en tu álbum!' : ''}${medal ? sayMedal(medal) : ''}`
           )
           return
         }
@@ -190,9 +219,13 @@ const pokemons = await getWildPokemons()
 
       scene.addEventListener('click', throwBall)
       btnNext.addEventListener('click', () => showPokemon({ announce: true }))
-      // Al cargar, solo si ya se ha tocado la página (al venir de /juegos/):
-      // si no, el móvil no deja hablar
-      showPokemon({ announce: canSpeak() })
+      // Desde el álbum, al tocar uno en sombra (?id=25), sale primero ese
+      const wantedId = Number(new URLSearchParams(location.search).get('id'))
+      const wanted = pokemons.find(({ id }) => id === wantedId)
+
+      // Al cargar, solo si ya se ha tocado la página (al venir de /juegos/ o
+      // del álbum): si no, el móvil no deja hablar
+      showPokemon({ announce: canSpeak(), wanted })
     }
 
     document.addEventListener('astro:page-load', handleWild)

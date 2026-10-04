@@ -35,6 +35,10 @@
      (hasta 2,75 s): las vueltas duran 3 s, sin ser infinitas */
   --animate-confetti-fall: confetti-fall 2s ease-in;
   --animate-confetti-flutter: confetti-flutter 0.5s linear 6;
+  /* Barra de jugar sin conexión (Navbar): con todo guardado se queda un
+     momento en verde y se va. Sin motion-safe: solo cambia la opacidad, y
+     sin la animación se quedaría siempre */
+  --animate-offline-ready: offline-ready 3s ease-in forwards;
 
   /* Tres sacudidas con pausa entre ellas, como al capturar en los juegos. El
      móvil vibra con cada una: si cambian los tiempos, cambiar también el
@@ -218,6 +222,16 @@
     }
   }
 
+  @keyframes offline-ready {
+    from,
+    60% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
   /* Una es la contraria de la otra; acaba con la siguiente fase a la vista */
   @keyframes evolve-out {
     0%,
@@ -294,14 +308,35 @@
     @apply flex flex-col items-center gap-1 py-4 rounded-2xl text-lg font-bold text-white transition-transform active:scale-95;
   }
 
-  /* Cadena de evolución: todas las fases miden lo mismo y caben en una fila.
-     100cqi es el ancho de la sección, que fija --stages; entre fase y fase
-     va una flecha de --spacing(6) (size-6) */
+  /* Cadena de evolución: todos los Pokémon miden lo mismo y caben en una
+     fila, también las ramas. 100cqi es el ancho de la sección, que fija
+     --pokemons, --arrows (flechas de --spacing(6), size-6) y --gaps (huecos
+     de --spacing(2) entre ramas, gap-2) */
   .evolution-item {
     width: min(
       --spacing(32),
-      calc((100cqi - (var(--stages) - 1) * --spacing(6)) / var(--stages))
+      calc(
+        (100cqi - var(--arrows) * --spacing(6) - var(--gaps) * --spacing(2)) /
+          var(--pokemons)
+      )
     );
+  }
+
+  /* ¿Más grande que yo? (ficha): Ibai y el Pokémon de pie, a la misma escala
+     y lo más grandes que quepan. La escala (px por metro) es la menor de dos:
+     la que hace que el más alto ocupe todo el alto y la que hace que los dos
+     juntos ocupen todo el ancho. --tallest y --width (alto del más alto y
+     ancho de los dos, en metros) los pone la ficha; cada uno lleva lo que
+     mide en --meters. --scale se calcula en cada hijo, y sus cq son los de
+     la escena, que es su contenedor */
+  .size-compare {
+    container-type: size;
+    gap: --spacing(2);
+    --scale: min(100cqh / var(--tallest), (100cqw - --spacing(2)) / var(--width));
+
+    & > * {
+      height: calc(var(--meters) * var(--scale));
+    }
   }
 
   /* Linterna: a oscuras salvo un círculo de luz en --x, --y (los fija el JS
