@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
+import AlbumPrize from '@components/games/AlbumPrize.astro'
 import GameHeader from '@components/games/GameHeader.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getGamePokemons } from 'services/game-pokemons'
@@ -14,10 +15,11 @@ const pokemons = await getGamePokemons()
 
   {/* ¿Dónde está…? a oscuras (scripts/find-game). data-state: asking
       (preguntando) o found (encontrado). La casilla buena lleva data-target y
-      la que se toca sin serlo, data-wrong mientras niega */}
+      la que se toca sin serlo, data-wrong mientras niega. Si lo encuentra a
+      la primera, va al álbum (AlbumPrize) */}
   <div
     id='find'
-    class='group grid gap-6 max-w-sm mx-auto'
+    class='group relative grid gap-6 max-w-sm mx-auto'
     data-state='asking'
     data-pokemons={JSON.stringify(pokemons)}
   >
@@ -65,6 +67,8 @@ const pokemons = await getGamePokemons()
         />
       </button>
     </div>
+
+    <AlbumPrize />
   </div>
   <audio
     id='find-cry'

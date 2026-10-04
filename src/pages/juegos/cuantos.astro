@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components'
+import AlbumPrize from '@components/games/AlbumPrize.astro'
 import GameHeader from '@components/games/GameHeader.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getGamePokemons } from 'services/game-pokemons'
@@ -18,10 +19,11 @@ const PLACES = 20
   {/* data-state: asking (preguntando) o found (acertado). Los sitios que no
       tienen Pokémon llevan data-empty y los ya contados, data-counted; la
       respuesta buena lleva data-right y la que se toca sin serlo, data-wrong
-      mientras niega */}
+      mientras niega. Si acierta a la primera, el Pokémon va al álbum
+      (AlbumPrize) */}
   <div
     id='count'
-    class='group grid gap-6 max-w-sm mx-auto'
+    class='group relative grid gap-6 max-w-sm mx-auto'
     data-state='asking'
     data-pokemons={JSON.stringify(pokemons)}
   >
@@ -82,6 +84,8 @@ const PLACES = 20
         />
       </button>
     </div>
+
+    <AlbumPrize />
   </div>
   <audio
     id='count-cry'
@@ -90,6 +94,7 @@ const PLACES = 20
 
   <script>
     import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { clearAlbumReward, rewardAlbum } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
     import { createDeck, pickSome } from 'scripts/random'
     import { canSpeak, playSound, speak } from 'scripts/sounds'
@@ -110,6 +115,7 @@ const PLACES = 20
       const cry = document.getElementById('count-cry') as HTMLAudioElement
       const btnAsk = document.getElementById('count-ask') as HTMLButtonElement
       const btnNext = document.getElementById('count-next') as HTMLButtonElement
+      const prize = count.querySelector('[data-album-prize]') as HTMLElement
 
       const pokemons: GamePokemon[] = JSON.parse(count.dataset.pokemons ?? '[]')
       // Ni el Pokémon ni cuántos hay (de 1 a uno por sitio) se repiten hasta
@@ -120,6 +126,8 @@ const PLACES = 20
       let total = 0
       let counted = 0
       let choices: number[] = []
+      // Si ya ha tocado una respuesta que no era: entonces no va al álbum
+      let missed = false
       // Cada pregunta es otra ronda: lo que quedara de la anterior se descarta
       let round = 0
 
@@ -132,11 +140,12 @@ const PLACES = 20
         if (pokemon) speak(`¿Cuántos ${pokemon.spokenName} hay?`)
       }
 
-      // «Hay un Pikachu», y no «uno»
-      const sayFound = () => {
+      // «Hay un Pikachu», y no «uno». reward: lo que añade el álbum, si es
+      // nuevo o trae medalla
+      const sayFound = (reward = '') => {
         if (!pokemon) return
 
-        const phrase = `¡Muy bien! ¡Hay ${total === 1 ? 'un' : total} ${pokemon.spokenName}!`
+        const phrase = `¡Muy bien! ¡Hay ${total === 1 ? 'un' : total} ${pokemon.spokenName}!${reward}`
         speechSynthesis.cancel()
         cry.onended = () => speak(phrase)
         playSound(cry)
@@ -146,6 +155,8 @@ const PLACES = 20
       // la buena y otras dos cerca, de menor a mayor
       const showRound = () => {
         round++
+        missed = false
+        clearAlbumReward(prize)
         cry.onended = null
         speechSynthesis.cancel()
 
@@ -199,16 +210,19 @@ const PLACES = 20
           return
         }
 
+        // A la primera, va al álbum
         if (n === total) {
           setState('found')
-          sayFound()
+          sayFound(missed || !pokemon ? '' : rewardAlbum(prize, [pokemon.id]))
           return
         }
 
-        // Esa no es: niega y le dice cómo saberlo. No se pierde
+        // Esa no es: niega y le dice cómo saberlo. No se pierde, pero ya no
+        // va al álbum
         if ('wrong' in answer.dataset) return
 
         const thisRound = round
+        missed = true
         answer.dataset.wrong = ''
         speak(`¡${n} no! ¡Cuéntalos con el dedo!`)
         await animationsEnd(answer)

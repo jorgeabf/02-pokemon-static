@@ -1,7 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components'
+import AlbumPrize from '@components/games/AlbumPrize.astro'
 import GameHeader from '@components/games/GameHeader.astro'
-import Confetti from '@components/shared/Confetti.astro'
 import Pokeball from '@components/shared/Pokeball.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { getGamePokemons } from 'services/game-pokemons'
@@ -19,8 +19,8 @@ const pokemons = await getGamePokemons()
 
   {/* data-state del tablero: dealing (tapándolas para repartir), idle
       (esperando), checking (girando la segunda), mismatch (no son pareja: se
-      tapan tras una pausa) o won, con data-celebrate (confeti). Cada carta
-      lleva data-up boca arriba y data-matched con su pareja encontrada */}
+      tapan tras una pausa) o won. Cada carta lleva data-up boca arriba y
+      data-matched con su pareja encontrada */}
   <div
     id='pairs'
     class='group relative grid gap-6 max-w-sm mx-auto'
@@ -66,7 +66,8 @@ const pokemons = await getGamePokemons()
       />
     </button>
 
-    <Confetti />
+    {/* Al ganar, confeti siempre; y los 6 de la partida van al álbum */}
+    <AlbumPrize />
   </div>
   <audio
     id='pairs-cry'
@@ -75,6 +76,7 @@ const pokemons = await getGamePokemons()
 
   <script>
     import type { GamePokemon } from 'interfaces/game-pokemon'
+    import { clearAlbumReward, rewardAlbum } from 'scripts/album'
     import { animationsEnd } from 'scripts/animations'
     import { createDeck, drawDistinct, shuffle } from 'scripts/random'
     import { playSound, speak } from 'scripts/sounds'
@@ -90,6 +92,7 @@ const pokemons = await getGamePokemons()
       const images = cards.map((card) => card.querySelector('img') as HTMLImageElement)
       const cry = document.getElementById('pairs-cry') as HTMLAudioElement
       const btnNext = document.getElementById('pairs-next') as HTMLButtonElement
+      const prize = board.querySelector('[data-album-prize]') as HTMLElement
 
       const pokemons: GamePokemon[] = JSON.parse(board.dataset.pokemons ?? '[]')
       // De una partida a otra no se repite ninguno hasta que han salido todos
@@ -122,7 +125,7 @@ const pokemons = await getGamePokemons()
         first = undefined
         cry.onended = null
         speechSynthesis.cancel()
-        delete board.dataset.celebrate
+        clearAlbumReward(prize)
 
         // Primero se tapan todas y, ya tapadas, se cambian los Pokémon: si
         // no, se verían los nuevos mientras giran
@@ -177,8 +180,10 @@ const pokemons = await getGamePokemons()
 
           if (cards.every(({ dataset }) => 'matched' in dataset)) {
             setState('won')
-            board.dataset.celebrate = ''
-            sayAfterCry(pokemon, `¡${pokemon.spokenName}! ¡Las has encontrado todas!`)
+            // Los 6 de la partida, al álbum; el confeti, aunque no haya nuevos
+            const reward = rewardAlbum(prize, [...new Set(deck.map(({ id }) => id))])
+            prize.dataset.celebrate = ''
+            sayAfterCry(pokemon, `¡${pokemon.spokenName}! ¡Las has encontrado todas!${reward}`)
             return
           }
 
