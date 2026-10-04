@@ -5,9 +5,24 @@ import { ALBUM_MEDALS } from 'consts/album-medals'
 // buscar (¿Dónde está…?, Escondite, Dale de comer, ¿Cuántos hay?) y en
 // Parejas, los 6 de la partida al acabarla
 const ALBUM_KEY = 'album'
+// Las veces que lo ha completado y vuelto a empezar: una copa por cada una.
+// Aparte, para que vaciar el álbum no las borre
+const ROUNDS_KEY = 'albumRounds'
 
 export const getAlbum = (): number[] =>
   JSON.parse(localStorage.getItem(ALBUM_KEY) ?? '[]')
+
+export const getRounds = () => Number(localStorage.getItem(ROUNDS_KEY)) || 0
+
+// Con el álbum lleno, se vacía para volver a llenarlo y se gana una copa (las
+// medallas salen de la cuenta: vuelven solas a cero). Devuelve su número
+export const restartAlbum = () => {
+  const rounds = getRounds() + 1
+
+  localStorage.setItem(ROUNDS_KEY, String(rounds))
+  localStorage.removeItem(ALBUM_KEY)
+  return rounds
+}
 
 // Devuelve si es nuevo en el álbum
 export const addToAlbum = (id: number) => {
@@ -24,10 +39,10 @@ export const addToAlbum = (id: number) => {
 const medalBetween = (before: number, after: number) =>
   ALBUM_MEDALS.findLast((medal) => medal > before && medal <= after)
 
-// Con la última medalla ya los tiene todos
+// Con la última medalla ya los tiene todos: en su álbum puede empezar otra vez
 const sayMedal = (medal: number) =>
   medal === ALBUM_MEDALS.at(-1)
-    ? ` ¡Ya los tienes todos! ¡Medalla de ${medal}!`
+    ? ` ¡Ya los tienes todos! ¡Medalla de ${medal}! Ve a tu álbum para empezar otra vez`
     : ` ¡Y has ganado la medalla de ${medal}!`
 
 const sayNew = (added: number, total: number) => {
