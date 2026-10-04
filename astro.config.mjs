@@ -26,7 +26,14 @@ export default defineConfig({
       }
     ]
   },
+  // Páginas que llevan a otra (meta refresh, no 301): se guardan como las
+  // demás para jugar sin conexión. La lista iba en 9 páginas y la app
+  // instalada empieza en la 1 o vuelve a la última que tenía abierta: todas
+  // llevan ahora a la lista entera
   redirects: {
-    '/': '/pokemons/1/'
+    '/': '/pokemons/',
+    ...Object.fromEntries(
+      Array.from({ length: 9 }, (_, index) => [`/pokemons/${index + 1}`, '/pokemons/'])
+    )
   }
 });
