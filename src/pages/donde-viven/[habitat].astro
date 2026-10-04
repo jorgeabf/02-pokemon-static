@@ -99,12 +99,10 @@ const { habitat, pokemons } = Astro.props
         flashlight.style.setProperty('--y', `${clientY - top}px`)
       }
 
+      // Con el dedo quieto encima de un Pokémon la luz sigue al dedo: el menú
+      // de Chrome y arrastrar la imagen ya los quita MainLayout en toda la app
       flashlight.addEventListener('pointerdown', moveLight)
       flashlight.addEventListener('pointermove', moveLight)
-      // Con el dedo quieto encima de un Pokémon, Chrome abriría su menú o
-      // empezaría a arrastrar la imagen, y la luz dejaría de seguir al dedo
-      flashlight.addEventListener('contextmenu', (event) => event.preventDefault())
-      flashlight.addEventListener('dragstart', (event) => event.preventDefault())
     }
 
     document.addEventListener('astro:page-load', handleFlashlight)

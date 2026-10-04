@@ -74,7 +74,7 @@ const {
 
   <body
     class:list={[
-      'bg-slate-800 text-slate-100',
+      'bg-slate-800 text-slate-100 select-none',
       { 'flex flex-col h-dvh': fitScreen }
     ]}
   >
@@ -100,6 +100,14 @@ const {
         const target = (event.target as Element).closest<HTMLElement>('[data-speak]')
         if (target?.dataset.speak) speak(target.dataset.speak)
       })
+
+      // Un niño deja el dedo quieto encima de las cosas: que no se abra el menú
+      // de Chrome (descargar la imagen, abrir en otra pestaña…) ni empiece a
+      // arrastrar la imagen. El texto no se selecciona por select-none en el
+      // body, pero el menú en Android no se puede evitar solo con CSS
+      // (-webkit-touch-callout es de iOS)
+      document.addEventListener('contextmenu', (event) => event.preventDefault())
+      document.addEventListener('dragstart', (event) => event.preventDefault())
 
       // Cuando ya ha cargado la página: lo que guarda para jugar sin conexión
       // no le quita conexión a lo primero que se ve. Si la app estaba abierta
