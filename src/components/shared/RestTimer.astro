@@ -1,0 +1,126 @@
+---
+import { Icon } from 'astro-icon/components'
+import { getPokemonImage } from 'services/pokemon-images'
+
+// «Hora de descansar» (scripts/rest-timer.ts): los tiempos que puede poner
+// el adulto, en minutos
+const MINUTES = [10, 20, 30, 45, 60]
+
+const snorlax = await getPokemonImage(143)
+---
+
+{/* Cuando se acaba el tiempo, Snorlax se duerme y tapa toda la pantalla.
+    Modal: lo de debajo queda inerte. Tocarlo dice que toca descansar;
+    mantenerlo pulsado abre la palabra del adulto para quitarlo */}
+<dialog
+  id='rest-lock'
+  aria-label='A descansar'
+  class='size-full max-w-none max-h-none bg-slate-950 text-slate-100 backdrop:bg-slate-950'
+>
+  <div class='grid h-full place-content-center justify-items-center gap-6 p-6 text-center'>
+    <button
+      data-speak='¡A descansar! Snorlax se ha dormido'
+      data-parent-hold='unlock'
+      aria-label='Snorlax dormido'
+      class='relative touch-none transition-transform active:scale-95'
+    >
+      <img
+        src={snorlax}
+        alt=''
+        width='256'
+        height='256'
+        class='size-64 brightness-75'
+      />
+      <span
+        aria-hidden='true'
+        class='absolute top-0 right-0 text-5xl font-black text-sky-200 motion-safe:animate-zzz'
+      >
+        Zzz
+      </span>
+    </button>
+    <p class='max-w-xs text-sm text-slate-400'>
+      Para seguir jugando, un adulto mantiene pulsado a Snorlax.
+    </p>
+  </div>
+</dialog>
+
+{/* Para el adulto. Primero, tocar la palabra que se pide (Ibai lee números,
+    no palabras); luego (data-step=panel), el temporizador. Con texto: es
+    para el adulto */}
+<dialog
+  id='rest-adult'
+  data-step='gate'
+  class='group m-auto w-80 p-6 rounded-2xl bg-slate-900 text-slate-100 border border-slate-600 backdrop:bg-black/70'
+>
+  <form
+    method='dialog'
+    class='grid gap-4'
+  >
+    <button
+      aria-label='Cerrar'
+      class='justify-self-end'
+    >
+      <Icon
+        name='x'
+        size={28}
+      />
+    </button>
+
+    <section class='grid gap-4 group-data-[step=panel]:hidden'>
+      <p>Para el adulto: toca la palabra <strong id='rest-word'></strong></p>
+      <div class='grid grid-cols-2 gap-3'>
+        {
+          [0, 1, 2, 3].map(() => (
+            <button
+              type='button'
+              data-word
+              class='py-3 rounded-xl bg-slate-700 text-lg font-bold disabled:opacity-40'
+            ></button>
+          ))
+        }
+      </div>
+      {/* Con su alto reservado: la espera tras fallar no mueve los botones */}
+      <p
+        id='rest-wait'
+        class='min-h-5 text-sm text-slate-400'
+      >
+      </p>
+    </section>
+
+    <section class='hidden gap-4 group-data-[step=panel]:grid'>
+      <h2 class='text-xl font-black'>Hora de descansar</h2>
+      <p
+        id='rest-status'
+        class='text-sm text-slate-300'
+      >
+      </p>
+      <div class='grid grid-cols-3 gap-3'>
+        {
+          MINUTES.map((minutes) => (
+            <button
+              type='button'
+              data-minutes={minutes}
+              class='py-3 rounded-xl bg-indigo-600 font-bold'
+            >
+              {minutes === 60 ? '1 hora' : `${minutes} min`}
+            </button>
+          ))
+        }
+      </div>
+      <button
+        id='rest-clear'
+        type='button'
+        class='py-3 rounded-xl bg-red-700 font-bold'
+      >
+        Quitar el temporizador
+      </button>
+      <p class='text-sm text-slate-400'>
+        Cuando Snorlax se duerma, mantenlo pulsado para quitarlo.
+      </p>
+    </section>
+  </form>
+</dialog>
+
+<script>
+  import 'scripts/rest-timer'
+</script>
