@@ -24,7 +24,7 @@ Publicada en <https://pokemons-ibai.netlify.app>.
 - **Hora de descansar:**
   - un adulto pone un tiempo manteniendo pulsada la Pokéball del menú;
   - un minuto antes, la voz avisa;
-  - al acabar, Snorlax se duerme y tapa la app hasta que el adulto lo quita (manteniéndolo pulsado y tocando la palabra que se pide).
+  - al acabar, Snorlax se duerme y tapa la app hasta que el adulto lo quita (manteniéndolo pulsado y tocando en orden las dos palabras que se piden).
 
 ## Pensada para un niño pequeño
 

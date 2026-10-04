@@ -8,16 +8,19 @@ import { canSpeak, speak } from 'scripts/sounds'
 
 // A qué hora (ms) se duerme Snorlax
 const TIMER_KEY = 'restEndsAt'
-// Fallos seguidos con la palabra y hasta cuándo hay que esperar
+// Fallos seguidos con las palabras y hasta cuándo hay que esperar
 const GATE_KEY = 'restGate'
 
 // La voz avisa un minuto antes de que se duerma
 const WARNING_MS = 60_000
 
 const HOLD_MS = 2000
+// Hay que tocar en orden dos de las cuatro palabras. Tocando al azar se
+// acierta 1 de cada 16; con una sola era 1 de cada 4, y en 4 intentos Ibai
+// entraba 2 veces de cada 3
+const WORDS_TO_TAP = 2
 // Tras un fallo, 10 s; con cada fallo seguido, el doble, hasta 5 minutos.
-// Tocando al azar se acierta 1 de cada 4: con una espera fija, Ibai daría
-// con ella en menos de un minuto
+// Con una espera fija, tocando al azar daría con ellas mucho antes
 const FIRST_WAIT_MS = 10_000
 const MAX_WAIT_MS = 5 * 60_000
 
@@ -116,9 +119,11 @@ const clearTimer = () => {
   clearTimeout(warningTimeout)
 }
 
-// El adulto: primero la palabra y, si acierta, lo que venía a hacer
+// El adulto: primero las palabras y, si acierta, lo que venía a hacer
 let purpose: Purpose = 'panel'
-let target = ''
+// Las que hay que tocar, en orden, y cuántas lleva
+let targets: string[] = []
+let tapped = 0
 let waitInterval: number | undefined
 
 // Si hay que esperar por un fallo, los botones se apagan y se ve la cuenta
@@ -143,16 +148,20 @@ const showWait = (dialog: HTMLDialogElement) => {
   waitInterval = window.setInterval(update, 1000)
 }
 
-// Cuatro palabras al azar y una de ellas, la que hay que tocar
+// Cuatro palabras al azar y dos de ellas, las que hay que tocar
 const showChallenge = (dialog: HTMLDialogElement) => {
   const words = pickSome(WORDS, 4)
-  target = words[Math.floor(Math.random() * words.length)]
+  targets = pickSome(words, WORDS_TO_TAP)
+  tapped = 0
 
-  const word = dialog.querySelector('#rest-word') as HTMLElement
-  word.textContent = target
+  const first = dialog.querySelector('#rest-first') as HTMLElement
+  const second = dialog.querySelector('#rest-second') as HTMLElement
+  first.textContent = targets[0]
+  second.textContent = targets[1]
   dialog.querySelectorAll<HTMLButtonElement>('[data-word]').forEach((button, index) => {
     button.textContent = words[index]
     button.dataset.word = words[index]
+    button.setAttribute('aria-pressed', 'false')
   })
   showWait(dialog)
 }
@@ -189,8 +198,10 @@ const openAdult = (why: Purpose) => {
   dialog.showModal()
 }
 
-const answer = (dialog: HTMLDialogElement, word: string) => {
-  if (word !== target) {
+// Cualquier palabra que no sea la que toca (también volver a tocar la
+// primera) es un fallo
+const answer = (dialog: HTMLDialogElement, button: HTMLButtonElement) => {
+  if (button.dataset.word !== targets[tapped]) {
     const { fails } = getGate()
     const wait = Math.min(FIRST_WAIT_MS * 2 ** fails, MAX_WAIT_MS)
 
@@ -201,6 +212,11 @@ const answer = (dialog: HTMLDialogElement, word: string) => {
     showChallenge(dialog)
     return
   }
+
+  // La primera se queda marcada, esperando a la segunda
+  tapped++
+  button.setAttribute('aria-pressed', 'true')
+  if (tapped < targets.length) return
 
   localStorage.removeItem(GATE_KEY)
 
@@ -231,7 +247,7 @@ document.addEventListener('click', (event) => {
   const word = element.closest<HTMLButtonElement>('[data-word]')
   const minutes = element.closest<HTMLButtonElement>('[data-minutes]')
 
-  if (word) answer(dialog, word.dataset.word ?? '')
+  if (word) answer(dialog, word)
   else if (minutes) choose(dialog, Number(minutes.dataset.minutes))
   else if (element.closest('#rest-clear')) {
     clearTimer()
