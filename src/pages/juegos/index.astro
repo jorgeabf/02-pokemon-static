@@ -289,5 +289,22 @@ const tileClass =
         </span>
       </a>
     </li>
+    <li>
+      <a
+        href='/juegos/escondite/'
+        aria-label='Escondite en la cueva'
+        data-speak='Escondite en la cueva'
+        class:list={[tileClass, 'bg-radial from-stone-400 from-30% to-slate-950 to-60%']}
+      >
+        {/* La cueva a oscuras y, en la luz de la linterna, Pikachu */}
+        <img
+          src={drawings[25]}
+          alt=''
+          width='60'
+          height='60'
+          class='aspect-square w-3/5 object-contain'
+        />
+      </a>
+    </li>
   </ul>
 </MainLayout>
