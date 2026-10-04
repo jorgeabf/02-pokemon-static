@@ -115,6 +115,7 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
       <PageTitle>
         {PAGE_TITLE}
       </PageTitle>
+      {/* Al ponerlo lo dice; al quitarlo, pregunta antes (#favorite-dialog) */}
       <button
         id='btn-favorite'
         aria-label='Favorito'
@@ -122,6 +123,7 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
         class='hover:animate-pulse'
         data-name={name}
         data-id={id}
+        data-spoken={spokenName}
       >
         <Icon
           name='heart-outline'
@@ -319,6 +321,49 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
       )
     }
   </div>
+  {/* Quitar un favorito: pregunta antes, y en voz alta (Ibai no lee), como
+      al borrarlo en Favoritos. form method=dialog cierra el diálogo y deja
+      el botón pulsado en returnValue */}
+  <dialog
+    id='favorite-dialog'
+    class='m-auto w-72 p-6 rounded-2xl bg-slate-900 text-slate-100 border border-slate-600 backdrop:bg-black/70'
+  >
+    <form
+      method='dialog'
+      class='grid gap-4 text-center'
+    >
+      <img
+        src={imageSrc}
+        alt=''
+        width='140'
+        height='140'
+        class='mx-auto'
+      />
+      <p class='text-xl font-bold'>¿Quitar a {spanishName} de tus favoritos?</p>
+      <div class='grid grid-cols-2 gap-4'>
+        <button
+          value='no'
+          aria-label='No'
+          class='btn-big bg-slate-600'
+        >
+          <Icon
+            name='x'
+            size={40}
+          />
+        </button>
+        <button
+          value='yes'
+          aria-label='Sí'
+          class='btn-big bg-red-700'
+        >
+          <Icon
+            name='check'
+            size={40}
+          />
+        </button>
+      </div>
+    </form>
+  </dialog>
   <audio
     id='cry'
     preload='auto'
@@ -346,6 +391,8 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
 
       const name = btnFavorite.dataset.name ?? ''
       const id = btnFavorite.dataset.id ?? ''
+      const spokenName = btnFavorite.dataset.spoken ?? ''
+      const dialog = document.getElementById('favorite-dialog') as HTMLDialogElement
 
       const heartOutline = btnFavorite.querySelector(
         '[data-outline]'
@@ -360,16 +407,32 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
         btnFavorite.setAttribute('aria-pressed', String(isFavorite()))
       }
 
-      const toggleFavorite = () => {
-        if (isFavorite()) {
-          favorites = favorites.filter((fav) => fav.name !== name)
-        } else {
-          favorites.push({ id: +id, name })
-        }
-
+      const saveFavorites = () => {
         localStorage.setItem('favorites', JSON.stringify(favorites))
         showFavorite()
       }
+
+      // Ponerlo lo dice; quitarlo pregunta antes (Ibai no lee el corazón)
+      const toggleFavorite = () => {
+        if (isFavorite()) {
+          dialog.returnValue = ''
+          dialog.showModal()
+          speak(`¿Quitar a ${spokenName} de tus favoritos?`)
+          return
+        }
+
+        favorites.push({ id: +id, name })
+        saveFavorites()
+        speak(`¡${spokenName} está en tus favoritos!`)
+      }
+
+      // Con «Sí» se quita; con «No», Esc o el «atrás» de Android, nada
+      dialog.addEventListener('close', () => {
+        if (dialog.returnValue !== 'yes') return
+
+        favorites = favorites.filter((fav) => fav.name !== name)
+        saveFavorites()
+      })
 
       showFavorite()
       btnFavorite.addEventListener('click', toggleFavorite)
