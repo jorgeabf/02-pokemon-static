@@ -97,8 +97,13 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
       cambian lo que se ve solo con CSS (group-has-[#…:checked]) */}
   <div class='group flex flex-col h-full'>
     <PageHeader>
-      <button
-        onclick='history.back()'
+      {/* Vuelve a donde se estaba (la lista, el álbum…): lo hace el script.
+          Si no hay de dónde volver dentro de la app (la ficha es la primera
+          página, o se llegó desde otra web), sigue el enlace: la lista, en
+          este Pokémon, que da un saltito como con los saltos */}
+      <a
+        id='btn-back'
+        href={`/pokemons/#pokemon-${id}`}
         aria-label='Volver'
         class='btn'
       >
@@ -106,7 +111,7 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
           name='arrow-left'
           size={40}
         />
-      </button>
+      </a>
       <PageTitle>
         {PAGE_TITLE}
       </PageTitle>
@@ -397,5 +402,22 @@ const shinyAnimatedSrc = getShinyAnimatedUrl(id)
     }
 
     document.addEventListener('astro:page-load', handleCompare)
+
+    // «Volver»: si la página anterior es de la app, vuelve a ella, con su
+    // scroll. Si no, el enlace lleva a la lista (sin salir de la app)
+    const handleBack = () => {
+      const btnBack = document.getElementById('btn-back')
+
+      if (!btnBack) return
+
+      btnBack.addEventListener('click', (event) => {
+        if (!navigation.canGoBack) return
+
+        event.preventDefault()
+        history.back()
+      })
+    }
+
+    document.addEventListener('astro:page-load', handleBack)
   </script>
 </MainLayout>
