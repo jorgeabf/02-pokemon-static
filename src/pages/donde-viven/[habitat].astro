@@ -3,7 +3,7 @@ import type { GetStaticPaths } from 'astro'
 import { Icon } from 'astro-icon/components'
 import PokemonCard from '@components/pokemons/PokemonCard.astro'
 import PageHeader from '@components/shared/PageHeader.astro'
-import PageTitle from '@components/shared/PageTitle.astro'
+import SpokenTitle from '@components/shared/SpokenTitle.astro'
 import MainLayout from '@layouts/MainLayout.astro'
 import { POKEMON_HABITATS } from 'consts/pokemon-habitats'
 import { getHabitats } from 'services/pokemon-species'
@@ -26,21 +26,12 @@ const { habitat, pokemons } = Astro.props
 ---
 
 <MainLayout title={habitat.name}>
+  {/* Para volver a los sitios está su icono en el menú */}
   <PageHeader>
-    <a
-      href='/donde-viven/'
-      aria-label='Volver a los sitios'
-      class='btn'
-    >
-      <Icon
-        name='arrow-left'
-        size={40}
-      />
-    </a>
-    <PageTitle>
+    <SpokenTitle speech={habitat.name}>
       <span
         class:list={[
-          'inline-grid place-items-center size-8 mr-2 align-middle rounded-lg bg-linear-to-b text-white',
+          'inline-grid place-items-center size-8 rounded-lg bg-linear-to-b text-white',
           habitat.tile
         ]}
       >
@@ -50,17 +41,7 @@ const { habitat, pokemons } = Astro.props
         />
       </span>
       {habitat.name}
-    </PageTitle>
-    <button
-      aria-label={`Decir ${habitat.name}`}
-      class='btn'
-      data-speak={habitat.name}
-    >
-      <Icon
-        name='speaker'
-        size={28}
-      />
-    </button>
+    </SpokenTitle>
   </PageHeader>
 
   {/* La cueva está a oscuras y se busca con una linterna. Cabe sin scroll en
